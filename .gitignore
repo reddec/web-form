@@ -1,0 +1,13 @@
+/test-data
+/build
+/dist
+/.idea
+/results
+
+/*.sqlite
+.idea
+.vscode
+.DS_Store
+/.local
+/*.pdf
+/.goreleaser.local.yaml

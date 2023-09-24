@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>All forms</title>
+    <link rel="stylesheet" href="static/bulma.min.css">
+</head>
+<body>
+<section class="section">
+    <div class="container">
+        {{range $form := .Definitions}}
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        {{or $form.Title $form.Name}}
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+                        {{($.Render $form.Description) | markdown}}
+                    </div>
+                </div>
+                <footer class="card-footer">
+                    <a href="forms/{{$form.Name}}" class="card-footer-item">Open</a>
+                </footer>
+            </div>
+            <br/>
+        {{end}}
+    </div>
+</section>
+</body>
+</html>

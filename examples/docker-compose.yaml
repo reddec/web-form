@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+  forms:
+    image: ghcr.io/reddec/web-form:latest
+    restart: unless-stopped
+    environment:
+      STORAGE: database
+      DB_URL: postgres://postgres:postgres@db/postgres?sslmode=disabled
+      DB_DIALECT: postgres
+    ports:
+      - 127.0.0.1:8080:8080
+    volumes:
+      - ./configs:/configs:ro
+      - ./migrations:/migrations:ro

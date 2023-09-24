@@ -1,0 +1,101 @@
+---
+table: pizza
+title: Order Pizza
+description: |
+  Welcome {{.User}}!
+  
+  Order HOT pizza RIGHT NOW and get
+  **huge** discount!
+  
+  _T&C_ can be applied
+fields:
+  - name: delivery_date
+    label: When to deliver
+    default: '{{now | date "2006-01-02T15:04"}}'
+    required: true
+    type: date-time
+
+
+  - name: birthday
+    label: Your birthday
+    default: '{{now | date "2006-01-02"}}'
+    description: We will give you a discount
+    type: date
+
+  - name: client_id
+    label: Customer
+    default: '{{.User}}' # from OIDC
+    required: true
+    disabled: true
+
+  - name: dough
+    label: Dough kind
+    default: "thin"
+    options:
+      - label: Hand made
+        value: hand-made
+      - label: Thin crust
+        value: thin
+
+  - name: cheese
+    label: Pick cheese
+    required: true
+    multiple: true
+    options:
+      - label: Italian Mozzarella
+        value: mozzarella
+      - label: Spanish Cheddar
+        value: cheddar
+      - label: Something Else
+        value: something
+
+  - name: phone
+    label: Phone number
+    required: true
+    description: Please use real phone number - we will contact you
+
+  - name: email
+    label: EMail
+    pattern: '[^@]+@[^@]+'
+    default: "{{.Email}}" # from OIDC
+    required: true
+
+  - name: notify_sms
+    label: Notify by SMS
+    type: boolean
+
+  - name: zip
+    label: ZIP code
+    required: true
+    type: integer
+
+  - name: address
+    label: Full address
+    required: true
+    multiline: true
+
+success: |
+  ## Thank you!
+  
+  Your order {{or .Result.ID .Result.id}} is on the way
+
+failed: |
+  ## Sorry!
+  
+  Something went wrong. Please contact our support and tell them the following message:
+  
+  ```
+  {{.Error}}
+  ```
+
+webhooks:
+  - url: https://example.com/new-pizza
+    name: order
+    retry: 3
+    interval: 10s
+    timeout: 30s
+    method: PUT
+
+  - url: https://example.com/notify-to-telegram
+    message: |
+      #{{ .Result.ID }} New pizza ordered.

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{or .Form.Title .Form.Name .Form.Table}}</title>
+    <link rel="stylesheet" href="../static/bulma.min.css">
+</head>
+<body>
+<section class="section">
+    <div class="container">
+        <div class="box">
+            {{if .Error}}
+                <div class="notification is-danger">
+                    {{($.Render $.Form.Failed ) | markdown}}
+                </div>
+            {{- else}}
+                <div class="notification is-success">
+                    {{($.Render $.Form.Success ) | markdown}}
+                </div>
+            {{- end}}
+            <br/>
+            <a class="button is-primary" href="{{$.Form.Name}}">send one more time..</a>
+        </div>
+</section>
+</body>
+</html>

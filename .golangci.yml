@@ -1,0 +1,26 @@
+run:
+  tests: false
+linters:
+  enable-all: true
+  disable:
+    - goerr113
+    - contextcheck
+    - exhaustivestruct
+    - wrapcheck
+    - varnamelen
+    - exhaustruct
+    - lll
+    - wsl
+    - nlreturn
+    - gofumpt
+    - funlen
+    - gci
+    - nonamedreturns
+    - depguard
+    - musttag
+    - ireturn
+    - gosmopolitan
+    - gomnd
+    - tagalign
+    - godox
+    - maligned # this is pretty good linter, but not really needed here

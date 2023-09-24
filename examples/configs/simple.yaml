@@ -1,0 +1,9 @@
+title: Simple example
+table: simple
+fields:
+  - name: name
+    required: true
+  - name: year
+    required: true
+  - name: comment
+    multiline: true

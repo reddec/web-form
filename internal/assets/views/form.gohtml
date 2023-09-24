@@ -1,0 +1,130 @@
+{{- define  "renderField" -}}
+    {{- $lastValue := $.root.LastValue $.field.Name -}}
+    {{- $defaultValue := or $lastValue  ($.field.Default | $.root.Render) -}}
+    {{- if .field.Options}}
+        {{- if .field.Multiple }}
+            {{- $defaultValues := $.root.LastValues $.field.Name -}}
+
+            {{- range $opt := .field.Options}}
+                <label class="checkbox is-block">
+                    <input class="checkbox" type="checkbox"
+                           name="{{$.field.Name}}"
+                           value="{{or $opt.Value $opt.Label}}"
+                            {{- if $defaultValues.Has (or $opt.Value $opt.Label)}} checked{{- end}}
+                            {{- if $.field.Disabled}} disabled{{- end}}
+                    />
+                    {{or $opt.Label $opt.Value}}
+                </label>
+            {{- end}}
+        {{- else}}
+            <div class="select">
+                <select name="{{$.field.Name}}" {{- if $.field.Disabled}} disabled{{- end}}>
+                    {{- range $opt := .field.Options}}
+                        <option value="{{or $opt.Value $opt.Label}}"{{- if eq $defaultValue $opt.Value}} selected="selected"{{- end}}>{{or $opt.Label $opt.Value}}</option>
+                    {{- end}}
+                </select>
+            </div>
+        {{- end}}
+    {{- else if .field.Type.Is "string"}}
+        {{- if .field.Multiline}}
+            <textarea class="textarea"
+                      name="{{.field.Name}}"{{- if .field.Disabled}} disabled{{- end}}>{{$defaultValue}}</textarea>
+        {{- else}}
+            <input class="input" type="text" name="{{.field.Name}}"
+                   value="{{$defaultValue}}"
+                    {{- if .field.Pattern}} pattern="{{.field.Pattern}}" {{- end}}
+                    {{- if .field.Disabled}} disabled{{- end}}
+            />
+        {{- end}}
+    {{- else if .field.Type.Is "integer"}}
+        <input class="input" type="number" step="1" name="{{.field.Name}}"{{- if .field.Disabled}} disabled{{- end}}
+               value="{{$defaultValue}}"/>
+    {{- else if .field.Type.Is "float"}}
+        <input class="input" type="number" name="{{.field.Name}}"{{- if .field.Disabled}} disabled{{- end}}
+               value="{{$defaultValue}}"/>
+    {{- else if .field.Type.Is "boolean"}}
+        <label class="checkbox is-block">
+            <input class="checkbox" type="checkbox"
+                   name="{{$.field.Name}}"
+                   value="true"
+                    {{- if eq $defaultValue "true"}} checked{{- end}}
+                    {{- if $.field.Disabled}} disabled{{- end}}
+            />
+            {{or .field.Label .field.Name}}
+        </label>
+    {{- else if .field.Type.Is "date"}}
+        <input class="input" type="date"
+               name="{{$.field.Name}}"
+               value="{{$defaultValue}}"
+                {{- if $.field.Disabled}} disabled{{- end}}
+        />
+    {{- else if .field.Type.Is "date-time"}}
+        <input class="input" type="datetime-local"
+               name="{{$.field.Name}}"
+               value="{{$defaultValue}}"
+                {{- if $.field.Disabled}} disabled{{- end}}
+        />
+
+    {{end}}
+{{- end -}}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{or .Form.Title .Form.Name .Form.Table}}</title>
+    <link rel="stylesheet" href="../static/bulma.min.css">
+</head>
+<body>
+
+<div class="container">
+    <section class="section">
+        <h1 class="title"> {{or .Form.Title .Form.Name .Form.Table}}</h1>
+        <p>{{($.Render .Form.Description) | markdown}}</p>
+    </section>
+    <br/>
+    <form method="post" class="box">
+
+        <input type="hidden" name="_xsrf" value="{{.XSRF}}"/>
+        {{- range $field := .Form.Fields}}
+            {{- if not $field.Hidden}}
+                <div class="field">
+                    <label class="label">
+                        {{or $field.Label $field.Name}}
+                        {{- if $field.Required}}
+                            <sup title="required field" class="has-text-danger">*</sup>
+                        {{- end}}
+                    </label>
+                    <div class="control">
+                        {{template "renderField" (dict "field" $field "root" $)}}
+                    </div>
+                    {{- with $field.Description}}
+                        <p class="help">{{.}}</p>
+                    {{- end}}
+                    {{- with $.FieldError $field.Name}}
+                        <p class="help is-danger">{{.}}</p>
+                    {{- end}}
+                </div>
+            {{- end}}
+        {{- end}}
+        <div class="field">
+            <div class="control">
+                <button class="button is-success" type="submit">send</button>
+            </div>
+        </div>
+        <noscript>
+            <small>JS disabled - server timezone ({{now | date "-0700" }}) will be used</small>
+        </noscript>
+
+        <input id="tz" type="hidden" name="__tz" value="{{timezone}}"/>
+        <script>
+            try {
+                document.getElementById("tz").setAttribute("value", Intl.DateTimeFormat().resolvedOptions().timeZone)
+            } catch (e) {
+                console.error(e)
+            }
+        </script>
+    </form>
+</div>
+</body>
+</html>
