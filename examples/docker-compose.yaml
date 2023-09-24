@@ -7,9 +7,11 @@ services:
   forms:
     image: ghcr.io/reddec/web-form:latest
     restart: unless-stopped
+    depends_on:
+      - db
     environment:
       STORAGE: database
-      DB_URL: postgres://postgres:postgres@db/postgres?sslmode=disabled
+      DB_URL: postgres://postgres:postgres@db:5432/postgres?sslmode=disable
       DB_DIALECT: postgres
     ports:
       - 127.0.0.1:8080:8080

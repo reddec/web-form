@@ -17,7 +17,7 @@ lint: $(LINTER)
 
 snapshot: $(GORELEASER)
 	$(GORELEASER) release --snapshot --clean
-	docker tag ghcr.io/reddec/$(notdir $(CURDIR)):$$(jq -r .version dist/metadata.json)-amd64 ghcr.io/reddec/$(notdir $(CURDIR)):1
+	docker tag ghcr.io/reddec/$(notdir $(CURDIR)):$$(jq -r .version dist/metadata.json)-amd64 ghcr.io/reddec/$(notdir $(CURDIR)):latest
 
 local: $(GORELEASER)
 	$(GORELEASER) release -f .goreleaser.local.yaml --clean

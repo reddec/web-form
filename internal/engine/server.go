@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"sql-web-form/internal/assets"
-	"sql-web-form/internal/schema"
-	"sql-web-form/internal/utils"
+	"github.com/reddec/web-form/internal/assets"
+	"github.com/reddec/web-form/internal/schema"
+	"github.com/reddec/web-form/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 )

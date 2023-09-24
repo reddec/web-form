@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"sql-web-form/internal/utils"
+	"github.com/reddec/web-form/internal/utils"
 
 	"github.com/jackc/pgx/v5/stdlib"
 	migrate "github.com/rubenv/sql-migrate"

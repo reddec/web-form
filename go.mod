@@ -1,4 +1,4 @@
-module sql-web-form
+module github.com/reddec/web-form
 
 go 1.21
 

@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"sql-web-form/internal/schema"
+	"github.com/reddec/web-form/internal/schema"
 )
 
 var (

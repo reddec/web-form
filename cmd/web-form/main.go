@@ -13,11 +13,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"sql-web-form/internal/assets"
-	"sql-web-form/internal/engine"
-	"sql-web-form/internal/schema"
-	"sql-web-form/internal/storage"
-	"sql-web-form/internal/webhook"
+	"github.com/reddec/web-form/internal/assets"
+	"github.com/reddec/web-form/internal/engine"
+	"github.com/reddec/web-form/internal/schema"
+	"github.com/reddec/web-form/internal/storage"
+	"github.com/reddec/web-form/internal/webhook"
 
 	_ "modernc.org/sqlite"
 

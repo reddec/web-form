@@ -29,6 +29,12 @@ architectures.
 The project is licensed under MPL-2.0 (Exhibit A), which allows for commercial usage with minimal restrictions, provided
 that any changes made are shared with the community. This promotes collaboration and community involvement.
 
+## Installation
+
+- From source code using go 1.21+ `go install github.com/reddec/web-form/cmd/...@latest`
+- From [binaries](https://github.com/reddec/web-form/releases/latest)
+- From [containers](https://github.com/reddec/web-form/pkgs/container/web-form) - see [docker](./docker.md)
+
 ## Quick start
 
 Let's imagine situation when you are going to collect opinions about which pizzas to order into the office.
@@ -73,4 +79,4 @@ proper [configuration](configuration.md).
 
 ## Examples
 
-Check examples in corresponding [directory](https://github.com/reddec/web-form/tree/main/examples).
+Check examples in corresponding [directory](https://github.com/reddec/web-form/tree/master/examples).

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"sql-web-form/internal/storage"
+	"github.com/reddec/web-form/internal/storage"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/ory/dockertest/v3"

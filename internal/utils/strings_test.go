@@ -3,7 +3,7 @@ package utils_test
 import (
 	"testing"
 
-	"sql-web-form/internal/utils"
+	"github.com/reddec/web-form/internal/utils"
 )
 
 func TestQuote(t *testing.T) {

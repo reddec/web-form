@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"sql-web-form/internal/utils"
+	"github.com/reddec/web-form/internal/utils"
 )
 
 var (

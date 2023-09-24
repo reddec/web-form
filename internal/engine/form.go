@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"sql-web-form/internal/schema"
-	"sql-web-form/internal/utils"
+	"github.com/reddec/web-form/internal/schema"
+	"github.com/reddec/web-form/internal/utils"
 
 	oidclogin "github.com/reddec/oidc-login"
 )
