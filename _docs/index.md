@@ -82,3 +82,8 @@ proper [configuration](configuration.md).
 ## Examples
 
 Check examples in corresponding [directory](https://github.com/reddec/web-form/tree/master/examples).
+
+## Next steps
+
+- Read about [form](form.md) definitions
+- And about [configuration](configuration.md)
