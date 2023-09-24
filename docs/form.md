@@ -1,5 +1,7 @@
 # Form
 
+<!--  {% raw %} --> 
+
 Form is yaml document stored under `configs` directory (see [configuration](./configuration.md)).
 One file may contain multiple form definitions (multi-document YAML); however, in that case `name` should be
 explicitly set since it's inferred from file name (without extension) and must be unique.
@@ -136,3 +138,4 @@ webhooks:
     message: |
       #{{ .Result.ID }} New pizza ordered.
 ```
+<!-- {% endraw %} -->

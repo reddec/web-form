@@ -1,4 +1,5 @@
 # Templates
+<!--  {% raw %} --> 
 
 For `default` values, for result messages, for description
 the [Go template](https://pkg.go.dev/text/template#hdr-Actions) can be used.
@@ -45,3 +46,5 @@ For example `{{$.User}}` will return username or empty string.
 | `Error`  | `error`                                         | Optional error               |
 
 If `.Error` is defined, then `.Result` is `nil`.
+
+<!-- {% endraw %} -->
