@@ -1,3 +1,4 @@
+---
 title: Simple example
 table: simple
 fields:
@@ -7,3 +8,17 @@ fields:
     required: true
   - name: comment
     multiline: true
+---
+# multi documents YAML also supported but requires explicit name
+name: birthdays
+table: birthday
+description: |
+  Collect employees birthdays
+fields:
+  - name: employee
+    label: Your name
+    required: true
+  - name: birthday
+    label: Birthday
+    type: date
+    required: true

@@ -1,0 +1,21 @@
+title: Let's order pizza!
+table: pizza
+description: |
+  Dear colleagues, I'm going to order some pizza this Friday.
+
+  Please, write your preferences bellow.
+fields:
+  - name: employee
+    label: Your name
+    required: true
+  - name: pizza_kind
+    label: Which pizza do you want?
+    required: true
+    options:
+      - label: Hawaii
+      - label: 4-cheese
+      - label: Meaty
+  - name: extra_cheese
+    label: Do you want extra cheese?
+    type: boolean
+    default: "true"

@@ -1,5 +1,5 @@
-FROM alpine:3.18.3 AS certs
-RUN apk --no-cache add ca-certificates && update-ca-certificates
+FROM alpine:3.18.3 AS build
+RUN apk --no-cache add ca-certificates tzdata && update-ca-certificates
 
 FROM scratch
 # for UI
@@ -19,5 +19,6 @@ ENV FILES_PATH="/data" \
     HTTP_BIND="0.0.0.0:8080"
 
 ENTRYPOINT ["/usr/bin/web-form"]
-COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 ADD web-form /usr/bin/web-form

@@ -1,5 +1,5 @@
 ---
-table: pizza
+table: shop
 title: Order Pizza
 description: |
   Welcome {{.User}}!

@@ -1,6 +1,6 @@
 -- +migrate Up
 
-CREATE TABLE pizza
+CREATE TABLE shop
 (
     ID            BIGSERIAL   NOT NULL PRIMARY KEY,
     CREATED_AT    TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
@@ -17,4 +17,4 @@ CREATE TABLE pizza
 );
 
 -- +migrate Down
-DROP TABLE pizza;
+DROP TABLE shop;

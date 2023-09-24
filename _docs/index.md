@@ -39,7 +39,7 @@ that any changes made are shared with the community. This promotes collaboration
 
 Let's imagine situation when you are going to collect opinions about which pizzas to order into the office.
 
-Create file `pizza-order.yaml` in directory `configs` with the following content:
+Create file `order-pizza.yaml` in directory `configs` with the following content:
 
 ```yaml
 title: Let's order pizza!
@@ -72,7 +72,7 @@ Run docker container
     docker run --rm -v $(pwd)/configs:/configs:ro -v $(pwd)/data:/data -p 8080:8080 ghcr.io/reddec/web-form:latest
 
 Open in you browser http://localhost:8080 and click to the form (direct link will
-be http://localhost:8080/forms/pizza-order).
+be http://localhost:8080/forms/order-pizza).
 
 Once submitted - check `data` directory. It will contain your result. Of course, the main power comes with
 proper [configuration](configuration.md).
