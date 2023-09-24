@@ -42,14 +42,14 @@ The system has minimal trust to user input therefore:
 ```yaml
 - name: delivery_date
   label: When to deliver
-  default: '{{now | date "2006-01-02T15:04"}}'
+  default: '{{now \| date "2006-01-02T15:04"}}'
   required: true
   type: date-time
 
 
 - name: birthday
   label: Your birthday
-  default: '{{now | date "2006-01-02"}}'
+  default: '{{now \| date "2006-01-02"}}'
   description: We will give you a discount
   type: date
 
