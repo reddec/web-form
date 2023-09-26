@@ -77,7 +77,7 @@ be http://localhost:8080/forms/order-pizza).
 Once submitted - check `data` directory. It will contain your result. Of course, the main power comes with
 proper [configuration](configuration.md).
 
-![Screenshot 2023-09-24 211012](https://github.com/reddec/web-form/assets/6597086/605400e1-c660-4c95-a59a-ba20ab70d1ed)
+![image](https://github.com/reddec/web-form/assets/6597086/b4dce0e1-30cf-492d-96a4-dbcc98eb787d)
 
 ## Examples
 

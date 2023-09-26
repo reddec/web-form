@@ -73,7 +73,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{or .Form.Title .Form.Name .Form.Table}}</title>
-    <link rel="stylesheet" href="../static/bulma.min.css">
+    <link rel="stylesheet" href="../static/css/bulma.min.css">
 </head>
 <body>
 
@@ -90,6 +90,11 @@
             {{- if not $field.Hidden}}
                 <div class="field">
                     <label class="label">
+                        {{- if $field.Icon}}
+                            <span class="icon is-left">
+                              <i class="{{$field.Icon}}"></i>
+                            </span>
+                        {{- end}}
                         {{or $field.Label $field.Name}}
                         {{- if $field.Required}}
                             <sup title="required field" class="has-text-danger">*</sup>
@@ -127,4 +132,5 @@
     </form>
 </div>
 </body>
+<link rel="stylesheet" href="../static/css/materialdesignicons.min.css">
 </html>

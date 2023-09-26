@@ -16,23 +16,26 @@ fields:
     default: '{{now | date "2006-01-02T15:04"}}'
     required: true
     type: date-time
-
+    icon: "mdi mdi-calendar-range"
 
   - name: birthday
     label: Your birthday
     default: '{{now | date "2006-01-02"}}'
     description: We will give you a discount
     type: date
+    icon: "mdi mdi-cake"
 
   - name: client_id
     label: Customer
     default: '{{.User}}' # from OIDC
     required: true
     disabled: true
+    icon: "mdi mdi-account"
 
   - name: dough
     label: Dough kind
     default: "thin"
+    icon: "mdi mdi-bread-slice"
     options:
       - label: Hand made
         value: hand-made
@@ -43,6 +46,7 @@ fields:
     label: Pick cheese
     required: true
     multiple: true
+    icon: mdi mdi-cheese
     options:
       - label: Italian Mozzarella
         value: mozzarella
@@ -54,6 +58,7 @@ fields:
   - name: phone
     label: Phone number
     required: true
+    icon: mdi mdi-phone-dial
     description: Please use real phone number - we will contact you
 
   - name: email
@@ -61,10 +66,12 @@ fields:
     pattern: '[^@]+@[^@]+'
     default: "{{.Email}}" # from OIDC
     required: true
+    icon: mdi mdi-email
 
   - name: notify_sms
     label: Notify by SMS
     type: boolean
+    icon: mdi mdi-message-alert
 
   - name: zip
     label: ZIP code
@@ -75,6 +82,7 @@ fields:
     label: Full address
     required: true
     multiline: true
+    icon: mdi mdi-map-marker
 
 success: |
   ## Thank you!

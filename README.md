@@ -32,7 +32,7 @@ that any changes made are shared with the community. This promotes collaboration
 
 Read docs for details: https://web-form.reddec.net/
 
-![Screenshot 2023-09-24 211012](https://github.com/reddec/web-form/assets/6597086/605400e1-c660-4c95-a59a-ba20ab70d1ed)
+![image](https://github.com/reddec/web-form/assets/6597086/b4dce0e1-30cf-492d-96a4-dbcc98eb787d)
 
 ## Installation
 

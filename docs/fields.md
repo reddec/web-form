@@ -1,4 +1,5 @@
 # Fields
+
 <!--  {% raw %} --> 
 
 Only field `name` is required for the field.
@@ -7,20 +8,21 @@ For all fields text values will be trimmed from leading and trailing white space
 
 Configurations:
 
-| Name          | Type                | Default  | Description                                                         |
-|---------------|---------------------|----------|---------------------------------------------------------------------|
-| *`name`*      | string              |          | column name in database and unique identifier of the field          |
-| `label`       | string              | `.name`  | name of field if UI                                                 |
-| `description` | string              |          | short description for the field, will be shown in UI as hint        |
-| `required`    | boolean             | false    | is field required                                                   |
-| `disabled`    | boolean             | false    | is user allowed to edit field                                       |
-| `hidden`      | boolean             | false    | do not show field in UI. Implicitly disables field                  |
-| `default`     | string              |          | default value for the field. Supports [template](template.md)       |
-| `type`        | [type](#types)      | `string` | field type                                                          |
-| `pattern`     | string              |          | validate user input by regular expression (only for `string` types) |
-| `options`     | [][Option](#option) |          | enum of allowed values                                              |
-| `multiple`    | boolean             | false    | allow multiple options                                              |
-| `multiline`   | boolean             | false    | tell UI to show multi-line input. Has no effect for backend         |
+| Name          | Type                | Default  | Description                                                                                |
+|---------------|---------------------|----------|--------------------------------------------------------------------------------------------|
+| *`name`*      | string              |          | column name in database and unique identifier of the field                                 |
+| `label`       | string              | `.name`  | name of field if UI                                                                        |
+| `description` | string              |          | short description for the field, will be shown in UI as hint                               |
+| `required`    | boolean             | false    | is field required                                                                          |
+| `disabled`    | boolean             | false    | is user allowed to edit field                                                              |
+| `hidden`      | boolean             | false    | do not show field in UI. Implicitly disables field                                         |
+| `default`     | string              |          | default value for the field. Supports [template](template.md)                              |
+| `type`        | [type](#types)      | `string` | field type                                                                                 |
+| `pattern`     | string              |          | validate user input by regular expression (only for `string` types)                        |
+| `options`     | [][Option](#option) |          | enum of allowed values                                                                     |
+| `multiple`    | boolean             | false    | allow multiple options                                                                     |
+| `multiline`   | boolean             | false    | tell UI to show multi-line input. Has no effect for backend                                |
+| `icon`        | string              |          | (0.2.0+) icon name, currently supported only [MDI](https://pictogrammers.com/library/mdi/) |
 
 Notes:
 
@@ -31,12 +33,12 @@ Notes:
     - with `multiple: true` it acts as "any of" (multiple choice)
     - otherwise it acts "one of" (single pick)
 - if `multiple` is true, depending on [storage](stores.md), information will be stored as array or as plain string
+- `icon` should contain type (`mdi`) and icon name. For example: `mdi mdi-cake`
 
 The system has minimal trust to user input therefore:
 
 - `hidden` or `disabled` fields are ignored even if it was provided in POST request
 - `type` and `pattern` verification will be additionally checked on backend side
-
 
 **Examples**
 
@@ -53,6 +55,7 @@ The system has minimal trust to user input therefore:
   default: '{{now | date "2006-01-02"}}'
   description: We will give you a discount
   type: date
+  icon: "mdi mdi-cake"
 
 - name: client_id
   label: Customer
@@ -86,7 +89,6 @@ The system has minimal trust to user input therefore:
   required: true
   description: Please use real phone number - we will contact you
 ```
-
 
 ## Types
 

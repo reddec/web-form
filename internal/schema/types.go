@@ -86,6 +86,7 @@ type Field struct {
 	Options     []Option // allowed values. If [Field.Multiple] set, it acts as "any of", otherwise "one of".
 	Multiple    bool     // allow picking multiple options. Column type in database MUST be ARRAY of corresponding type.
 	Multiline   bool     // multiline input (for [TypeString] only)
+	Icon        string   // optional MDI icon
 }
 
 type Webhook struct {
