@@ -18,3 +18,4 @@ services:
     volumes:
       - ./configs:/configs:ro
       - ./migrations:/migrations:ro
+      - ./assets:/assets:ro

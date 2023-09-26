@@ -61,6 +61,7 @@ type Config struct {
 		Buffer int `long:"buffer" env:"BUFFER" description:"Buffer size before processing" default:"100"`
 	} `group:"Webhooks general configuration" namespace:"webhooks" env-namespace:"WEBHOOKS"`
 	HTTP struct {
+		Assets       string        `long:"assets" env:"ASSETS" description:"Directory for assets (static) files"`
 		Bind         string        `long:"bind" env:"BIND" description:"Binding address" default:":8080"`
 		DisableXSRF  bool          `long:"disable-xsrf" env:"DISABLE_XSRF" description:"Disable XSRF validation. Useful for API"`
 		TLS          bool          `long:"tls" env:"TLS" description:"Enable TLS"`
@@ -141,8 +142,12 @@ func run(ctx context.Context, config Config) error {
 		slog.Info("no authorization used")
 	}
 
-	// static dir is unprotected
+	// static dir and user-defined asset dir are unprotected
 	router.Mount("/static/", http.FileServer(http.FS(assets.Static)))
+	if config.HTTP.Assets != "" {
+		slog.Info("user-defined assets enabled", "assets-dir", config.HTTP.Assets)
+		router.Mount("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir(config.HTTP.Assets))))
+	}
 
 	// scan forms from file system
 	forms, err := schema.FormsFromFS(os.DirFS(config.Configs))

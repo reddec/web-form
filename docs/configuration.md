@@ -43,6 +43,7 @@ HTTP server configuration:
 --http.cert=                    Public TLS certificate (default: server.crt) [$HTTP_CERT]
 --http.read-timeout=            Read timeout to prevent slow client attack (default: 5s) [$HTTP_READ_TIMEOUT]
 --http.write-timeout=           Write timeout to prevent slow consuming clients attack (default: 5s) [$HTTP_WRITE_TIMEOUT]
+--http.assets=                  Directory for assets (static) files [$HTTP_ASSETS]
 
 OIDC configuration:
 --oidc.enable                   Enable OIDC protection [$OIDC_ENABLE]
@@ -54,9 +55,7 @@ OIDC configuration:
 --oidc.redis-max-connections=   Redis maximum number of active connections (default: 10) [$OIDC_REDIS_MAX_CONNECTIONS]
 ```
 
-
 - By-default, by the root path `/` listing of all forms available. It can be disabled by `DISABLE_LISTING=true`
-
 
 ## HTTP and TLS
 
@@ -69,6 +68,28 @@ Encrypt it could be necessary to restart application after renewal.
 HTTP_TLS=yes
 HTTP_KEY=/path/to/key.pem
 HTTP_CERT=/path/to/cert.pem
+```
+
+### Assets
+
+since 0.2.0
+
+WebForms can handle user-defined static files (assets) via `/assets/` path if `--http.assets` flag is defined.
+By-default, it's disabled in CLI mode and enabled in [docker](docker.md) mode.
+
+It could be useful for embedding images or other things in templates. For example:
+
+
+```yaml
+---
+table: shop
+title: Order Pizza
+description: |
+  Welcome to our pizzeria!
+
+  ![](/assets/logo.png)
+  
+# other configuration
 ```
 
 ### Security

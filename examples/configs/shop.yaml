@@ -7,6 +7,8 @@ description: |
   Order HOT pizza RIGHT NOW and get
   **huge** discount!
   
+  ![](/assets/img/semweb.svg)
+  
   _T&C_ can be applied
 fields:
   - name: delivery_date

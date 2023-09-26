@@ -5,6 +5,7 @@ By default, in docker mode:
 - database migrations are enabled and expected in `/migrations` dir
 - storage type is `files` and storage path is `/data`
 - configurations should be mounted to `/configs`
+- [assets](configuration.md#assets) files served from `/assets` dir (since 0.2.0)
 
 If storage is `database` and migration directory (`DB_MIGRATIONS`, default is `/migrations`) contains at least one
 SQL file (`.sql`) then migration will be applied automatically
