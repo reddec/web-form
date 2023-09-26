@@ -91,7 +91,7 @@ type Field struct {
 type Webhook struct {
 	URL      string            // URL for POST webhook, where payload is JSON with fields from database column.
 	Method   string            // HTTP method to perform, default is POST
-	Retry    int               // maximum number of retries (0 or negative means no retries)
+	Retry    int               // maximum number of retries (negative means no retries)
 	Timeout  time.Duration     // request timeout
 	Interval time.Duration     // interval between attempts (for non 2xx code)
 	Headers  map[string]string // arbitrary headers (ex: Authorization)

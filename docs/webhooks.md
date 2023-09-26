@@ -1,4 +1,5 @@
 # Webhooks
+
 <!--  {% raw %} --> 
 
 For each form submission an HTTP sub-request from the server can be performed to any other resource (webhook).
@@ -21,6 +22,26 @@ The minimal definition is `url` only:
 webhooks:
   - url: https://example.com/new-pizza
 ```
+
+## Type
+
+| Field      | Type                                              | Default | Description                                                     |
+|------------|---------------------------------------------------|---------|-----------------------------------------------------------------|
+| **`url`**  | string                                            |         | WebHook HTTP(s) URL. Required                                   |
+| `method`   | string                                            | POST    | HTTP method (GET, POST, PUT, etc...)                            |
+| `retry`    | int                                               | 3       | Maximum number of retries                                       |
+| `timeout`  | [Duration](https://pkg.go.dev/time#ParseDuration) | 10s     | Request timeout                                                 |
+| `interval` | [Duration](https://pkg.go.dev/time#ParseDuration) | 15s     | Interval between retries                                        |
+| `headers`  | map[string]string                                 |         | Any additional headers, for example `Authorization`             |
+| `message`  | string                                            |         | [template](template.md#context-for-webhooks for message payload |
+
+Notes:
+
+- negative `retry` disables retries
+
+Updates:
+
+- `method` supported since 0.2.0
 
 The full definition is:
 

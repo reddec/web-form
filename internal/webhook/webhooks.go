@@ -23,6 +23,7 @@ const (
 	defaultTimeout  = 10 * time.Second
 	defaultRetries  = 3
 	defaultInterval = 15 * time.Second
+	defaultMethod   = http.MethodPost
 )
 
 func New(buffer int) *Dispatcher {
@@ -37,11 +38,14 @@ func (wd *Dispatcher) Dispatch(ctx context.Context, webhook schema.Webhook, payl
 	if webhook.Timeout <= 0 {
 		webhook.Timeout = defaultTimeout
 	}
-	if webhook.Retry < 0 {
+	if webhook.Retry == 0 {
 		webhook.Retry = defaultRetries
 	}
 	if webhook.Interval <= 0 {
 		webhook.Interval = defaultInterval
+	}
+	if webhook.Method == "" {
+		webhook.Method = defaultMethod
 	}
 
 	select {
@@ -109,7 +113,7 @@ func (wt *webhookTask) trySend(global context.Context) error {
 	ctx, cancel := context.WithTimeout(global, wt.webhook.Timeout)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, wt.webhook.URL, bytes.NewReader(wt.payload))
+	req, err := http.NewRequestWithContext(ctx, wt.webhook.Method, wt.webhook.URL, bytes.NewReader(wt.payload))
 	if err != nil {
 		return fmt.Errorf("create request: %w", err)
 	}
