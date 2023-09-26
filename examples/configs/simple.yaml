@@ -12,6 +12,8 @@ fields:
 # multi documents YAML also supported but requires explicit name
 name: birthdays
 table: birthday
+# (OIDC only) allow only for groups admin OR for users with email domains example.com
+policy: '"admin" in groups || email.endsWith("@example.com")'
 description: |
   Collect employees birthdays
 fields:

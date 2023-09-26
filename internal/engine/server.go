@@ -64,9 +64,17 @@ func New(cfg Config, options ...FormOption) (http.Handler, error) {
 
 func listViewHandler(forms []schema.Form, render *Renderer, listView *template.Template) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		creds := schema.CredentialsFromContext(request.Context())
+		var filteredForms = make([]schema.Form, 0, len(forms))
+		for _, f := range forms {
+			if f.IsAllowed(creds) {
+				filteredForms = append(filteredForms, f)
+			}
+		}
+
 		vc := &serverViewContext{
 			View:        render.View(request),
-			Definitions: forms,
+			Definitions: filteredForms,
 		}
 
 		var buffer bytes.Buffer

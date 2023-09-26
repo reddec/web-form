@@ -16,8 +16,6 @@ import (
 
 	"github.com/reddec/web-form/internal/schema"
 	"github.com/reddec/web-form/internal/utils"
-
-	oidclogin "github.com/reddec/oidc-login"
 )
 
 type Storage interface {
@@ -53,6 +51,12 @@ type Form struct {
 
 func (f *Form) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	defer request.Body.Close()
+
+	creds := schema.CredentialsFromContext(request.Context())
+	if !f.config.Definition.IsAllowed(creds) {
+		writer.WriteHeader(http.StatusForbidden)
+		return
+	}
 
 	switch request.Method {
 	case http.MethodGet:
@@ -302,17 +306,13 @@ func (r *Renderer) Render(value string, req *http.Request, result map[string]any
 		return "", fmt.Errorf("parse form: %w", err)
 	}
 
-	token := oidclogin.Token(req)
-
 	vc := renderContext{
 		Headers: req.Header,
 		Query:   req.URL.Query(),
 		Form:    req.Form,
 		Result:  result,
 		Error:   dataErr,
-		User:    oidclogin.User(token),
-		Email:   oidclogin.Email(token),
-		Groups:  oidclogin.Groups(token),
+		creds:   schema.CredentialsFromContext(req.Context()),
 	}
 
 	var buf bytes.Buffer
@@ -349,9 +349,28 @@ type renderContext struct {
 	Form    url.Values
 	Result  map[string]any
 	Error   error
-	User    string
-	Groups  []string
-	Email   string
+	creds   *schema.Credentials
+}
+
+func (rc *renderContext) User() string {
+	if rc.creds == nil {
+		return ""
+	}
+	return rc.creds.User
+}
+
+func (rc *renderContext) Groups() []string {
+	if rc.creds == nil {
+		return nil
+	}
+	return rc.creds.Groups
+}
+
+func (rc *renderContext) Email() string {
+	if rc.creds == nil {
+		return ""
+	}
+	return rc.creds.Email
 }
 
 type View struct {

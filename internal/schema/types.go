@@ -2,7 +2,10 @@ package schema
 
 import (
 	"html/template"
+	"log/slog"
 	"time"
+
+	"github.com/google/cel-go/cel"
 )
 
 func Default() Form {
@@ -14,6 +17,8 @@ func Default() Form {
 
 type Template template.Template
 
+type Policy struct{ cel.Program }
+
 type Form struct {
 	Name        string // unique form name, if not set - file name without extension will be used.
 	Table       string // database table name
@@ -21,8 +26,29 @@ type Form struct {
 	Description string // (markdown) optional description of the form
 	Fields      []Field
 	Webhooks    []Webhook
-	Success     string // markdown message for success (also go template with available .Result)
-	Failed      string // markdown message for failed (also go template with .Error)
+	Success     string  // markdown message for success (also go template with available .Result)
+	Failed      string  // markdown message for failed (also go template with .Error)
+	Policy      *Policy // optional access policy
+}
+
+// IsAllowed checks permission for the provided credentials.
+// Always allowed for nil policy or for nil creds, and always prohibited if policy returns non-boolean value.
+func (f *Form) IsAllowed(creds *Credentials) bool {
+	if f.Policy == nil || creds == nil {
+		return true
+	}
+	out, _, err := f.Policy.Eval(map[string]any{
+		"user":   creds.User,
+		"email":  creds.Email,
+		"groups": creds.Groups,
+	})
+	if err != nil {
+		slog.Error("failed evaluate policy", "error", err)
+		return false
+	}
+
+	v, ok := out.ConvertToType(cel.BoolType).Value().(bool)
+	return v && ok
 }
 
 type Type string
@@ -75,4 +101,10 @@ type Webhook struct {
 type Option struct {
 	Label string // label for UI
 	Value string // if not set - Label is used, allowed value should match textual representation of form value
+}
+
+type Credentials struct {
+	User   string
+	Groups []string
+	Email  string
 }

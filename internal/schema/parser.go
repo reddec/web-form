@@ -2,6 +2,7 @@ package schema
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"html/template"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/cel-go/cel"
 	"github.com/reddec/web-form/internal/utils"
 )
 
@@ -98,4 +100,36 @@ func (t *Template) Render(data any) ([]byte, error) {
 	var buf bytes.Buffer
 	err := (*template.Template)(t).Execute(&buf, data)
 	return buf.Bytes(), err
+}
+
+func (p *Policy) UnmarshalText(text []byte) error {
+	env, err := cel.NewEnv(
+		cel.Variable("user", cel.StringType),
+		cel.Variable("email", cel.StringType),
+		cel.Variable("groups", cel.ListType(cel.StringType)),
+	)
+	if err != nil {
+		return fmt.Errorf("create CEL env: %w", err)
+	}
+	ast, issues := env.Compile(string(text))
+	if issues != nil {
+		return fmt.Errorf("parse policy %q: %w", string(text), issues.Err())
+	}
+	prog, err := env.Program(ast)
+	if err != nil {
+		return fmt.Errorf("compile CEL AST %q: %w", string(text), err)
+	}
+	p.Program = prog
+	return nil
+}
+
+type credsKey struct{}
+
+func WithCredentials(ctx context.Context, creds *Credentials) context.Context {
+	return context.WithValue(ctx, credsKey{}, creds)
+}
+
+func CredentialsFromContext(ctx context.Context) *Credentials {
+	c, _ := ctx.Value(credsKey{}).(*Credentials)
+	return c
 }

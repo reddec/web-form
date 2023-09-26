@@ -156,6 +156,7 @@ func run(ctx context.Context, config Config) error {
 		return fmt.Errorf("create storage: %w", err)
 	}
 	defer store.Close()
+	slog.Info("storage prepared")
 
 	// webhooks dispatcher
 	webhooks := webhook.New(config.Webhooks.Buffer)
@@ -175,6 +176,13 @@ func run(ctx context.Context, config Config) error {
 	router.Group(func(r chi.Router) {
 		r.Use(owasp)
 		r.Use(authMiddleware)
+		r.Use(func(handler http.Handler) http.Handler {
+			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				creds := credentialsFromRequest(request)
+				reqCtx := schema.WithCredentials(request.Context(), creds)
+				handler.ServeHTTP(writer, request.WithContext(reqCtx))
+			})
+		})
 		r.Mount("/", srv)
 	})
 
@@ -302,4 +310,35 @@ func owasp(next http.Handler) http.Handler {
 		writer.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		next.ServeHTTP(writer, request)
 	})
+}
+
+func credentialsFromRequest(req *http.Request) *schema.Credentials {
+	token := oidclogin.Token(req)
+	if token == nil {
+		return nil
+	}
+	// optimized version to avoid multiple unmarshalling
+	var claims struct {
+		Username string   `json:"preferred_username"` //nolint:tagliatelle
+		Email    string   `json:"email"`
+		Groups   []string `json:"groups"`
+	}
+	_ = token.Claims(&claims)
+	// workaround for username
+	claims.Username = firstOf(claims.Username, claims.Email, token.Subject)
+	return &schema.Credentials{
+		User:   claims.Username,
+		Groups: claims.Groups,
+		Email:  claims.Email,
+	}
+}
+
+func firstOf[T comparable](values ...T) T {
+	var def T
+	for _, v := range values {
+		if v != def {
+			return v
+		}
+	}
+	return def
 }

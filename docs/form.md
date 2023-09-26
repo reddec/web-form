@@ -13,26 +13,25 @@ mode.
 
 See [examples](https://github.com/reddec/web-form/tree/master/examples) for inspirations.
 
-| Field         | Type                     | Description                                                                              |
-|---------------|--------------------------|------------------------------------------------------------------------------------------|
-| `name`        | string                   | unique form name, if not set - file name without extension will be used                  |
-| `table`       | string                   | database table name (database mode), or directory name (files mode)                      |
-| `title`       | string                   | short form title/name                                                                    |
-| `description` | string                   | **markdown + [template](template.md)** description of the form                           |
-| `fields`      | [][Field](fields.md)     | list of fields definitions                                                               |
-| `webhooks`    | [][Webhook](webhooks.md) | list of webhooks                                                                         |
-| `success`     | string                   | **markdown + [template](template.md)** message to show in case submission was successful |
-| `failed`      | string                   | **markdown + [template](template.md)** message to show in case submission failed         |
-
+| Field         | Type                     | Description                                                                                    |
+|---------------|--------------------------|------------------------------------------------------------------------------------------------|
+| `name`        | string                   | unique form name, if not set - file name without extension will be used                        |
+| `table`       | string                   | database table name (database mode), or directory name (files mode)                            |
+| `title`       | string                   | short form title/name                                                                          |
+| `description` | string                   | **markdown + [template](template.md)** description of the form                                 |
+| `fields`      | [][Field](fields.md)     | list of fields definitions                                                                     |
+| `webhooks`    | [][Webhook](webhooks.md) | list of webhooks                                                                               |
+| `success`     | string                   | **markdown + [template](template.md)** message to show in case submission was successful       |
+| `failed`      | string                   | **markdown + [template](template.md)** message to show in case submission failed               |
+| `form`        | string                   | optional policy expression (OIDC only) - see details [here](./authorization.md#access-control) |
 
 Default message for `success`:
 
     Thank you for the submission!
-  
+
 Default message for `faield`:
 
     Something went wrong: `{{.Error}}`
-
 
 **Comprehensive example:**
 
@@ -42,10 +41,10 @@ table: shop
 title: Order Pizza
 description: |
   Welcome {{.User}}!
-  
+
   Order HOT pizza RIGHT NOW and get
   **huge** discount!
-  
+
   _T&C_ can be applied
 fields:
   - name: delivery_date
@@ -115,16 +114,16 @@ fields:
 
 success: |
   ## Thank you!
-  
+
   Your order {{or .Result.ID .Result.id}} is on the way
 
 failed: |
   ## Sorry!
-  
+
   Something went wrong. Please contact our support and tell them the following message:
-  
+
       {{.Error}}
-  
+
 
 webhooks:
   - url: https://example.com/new-pizza
@@ -138,4 +137,5 @@ webhooks:
     message: |
       #{{ .Result.ID }} New pizza ordered.
 ```
+
 <!-- {% endraw %} -->
