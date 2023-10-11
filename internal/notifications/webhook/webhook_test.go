@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/reddec/web-form/internal/notifications/webhook"
 	"github.com/reddec/web-form/internal/schema"
-	"github.com/reddec/web-form/internal/webhook"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

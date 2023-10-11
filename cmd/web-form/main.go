@@ -15,9 +15,9 @@ import (
 
 	"github.com/reddec/web-form/internal/assets"
 	"github.com/reddec/web-form/internal/engine"
+	"github.com/reddec/web-form/internal/notifications/webhook"
 	"github.com/reddec/web-form/internal/schema"
 	"github.com/reddec/web-form/internal/storage"
-	"github.com/reddec/web-form/internal/webhook"
 
 	_ "modernc.org/sqlite"
 
