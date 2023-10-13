@@ -30,15 +30,20 @@ func TestDispatcher_Dispatch(t *testing.T) {
 		server, requests := createTestServer(t)
 		defer server.Close()
 
-		err := dispatcher.Dispatch(ctx, schema.Webhook{
+		notify := dispatcher.Create(schema.Webhook{
 			URL: server.URL,
-		}, []byte(t.Name()))
+		})
+
+		err := notify.Dispatch(ctx, &Event{
+			result: map[string]any{"Name": t.Name()},
+		})
+
 		require.NoError(t, err)
 
 		req := requireReceive(t, ctx, requests)
 		pd, err := io.ReadAll(req.Body)
 		require.NoError(t, err)
-		assert.Equal(t, []byte(t.Name()), pd)
+		assert.Equal(t, `{"Name":"`+t.Name()+`"}`, string(pd))
 		assert.Equal(t, http.MethodPost, req.Method)
 	})
 
@@ -48,16 +53,20 @@ func TestDispatcher_Dispatch(t *testing.T) {
 		server, requests := createTestServer(t)
 		defer server.Close()
 
-		err := dispatcher.Dispatch(ctx, schema.Webhook{
+		notify := dispatcher.Create(schema.Webhook{
 			URL:    server.URL,
 			Method: http.MethodPut,
-		}, []byte(t.Name()))
+		})
+
+		err := notify.Dispatch(ctx, &Event{
+			result: map[string]any{"Name": t.Name()},
+		})
 		require.NoError(t, err)
 
 		req := requireReceive(t, ctx, requests)
 		pd, err := io.ReadAll(req.Body)
 		require.NoError(t, err)
-		assert.Equal(t, []byte(t.Name()), pd)
+		assert.Equal(t, `{"Name":"`+t.Name()+`"}`, string(pd))
 		assert.Equal(t, http.MethodPut, req.Method)
 	})
 
@@ -67,18 +76,22 @@ func TestDispatcher_Dispatch(t *testing.T) {
 		server, requests := createTestServer(t)
 		defer server.Close()
 
-		err := dispatcher.Dispatch(ctx, schema.Webhook{
+		notify := dispatcher.Create(schema.Webhook{
 			URL: server.URL,
 			Headers: map[string]string{
 				"Authorization": "foo bar",
 			},
-		}, []byte(t.Name()))
+		})
+
+		err := notify.Dispatch(ctx, &Event{
+			result: map[string]any{"Name": t.Name()},
+		})
 		require.NoError(t, err)
 
 		req := requireReceive(t, ctx, requests)
 		pd, err := io.ReadAll(req.Body)
 		require.NoError(t, err)
-		assert.Equal(t, []byte(t.Name()), pd)
+		assert.Equal(t, `{"Name":"`+t.Name()+`"}`, string(pd))
 		assert.Equal(t, http.MethodPost, req.Method)
 		assert.Equal(t, "foo bar", req.Header.Get("Authorization"))
 	})
@@ -111,4 +124,22 @@ func requireReceive(t *testing.T, ctx context.Context, requests <-chan *http.Req
 		require.NoError(t, ctx.Err())
 		panic("finished")
 	}
+}
+
+type Event struct {
+	result     map[string]any
+	error      error
+	definition schema.Form
+}
+
+func (ev *Event) Form() schema.Form {
+	return ev.definition
+}
+
+func (ev *Event) Error() error {
+	return ev.error
+}
+
+func (ev *Event) Result() map[string]any {
+	return ev.result
 }

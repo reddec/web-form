@@ -19,10 +19,10 @@ import (
 var ErrDuplicatedName = errors.New("duplicated form name")
 
 type Config struct {
-	Forms      []schema.Form
-	Storage    Storage
-	Dispatcher WebhooksDispatcher
-	Listing    bool
+	Forms           []schema.Form
+	Storage         Storage
+	WebhooksFactory WebhooksFactory
+	Listing         bool
 }
 
 func New(cfg Config, options ...FormOption) (http.Handler, error) {
@@ -48,12 +48,12 @@ func New(cfg Config, options ...FormOption) (http.Handler, error) {
 		}
 		usedName.Add(formDef.Name)
 		mux.Mount("/forms/"+formDef.Name, NewForm(FormConfig{
-			Definition:         formDef,
-			Renderer:           renderer,
-			ViewForm:           templates.Lookup("form.gohtml"),
-			ViewResult:         templates.Lookup("result.gohtml"),
-			Storage:            cfg.Storage,
-			WebhooksDispatcher: cfg.Dispatcher,
+			Definition:      formDef,
+			Renderer:        renderer,
+			ViewForm:        templates.Lookup("form.gohtml"),
+			ViewResult:      templates.Lookup("result.gohtml"),
+			Storage:         cfg.Storage,
+			WebhooksFactory: cfg.WebhooksFactory,
 		}, options...))
 	}
 	if cfg.Listing {

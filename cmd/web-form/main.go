@@ -167,10 +167,10 @@ func run(ctx context.Context, config Config) error {
 	webhooks := webhook.New(config.Webhooks.Buffer)
 
 	srv, err := engine.New(engine.Config{
-		Forms:      forms,
-		Storage:    store,
-		Dispatcher: webhooks,
-		Listing:    !config.DisableListing,
+		Forms:           forms,
+		Storage:         store,
+		WebhooksFactory: webhooks,
+		Listing:         !config.DisableListing,
 	},
 		engine.WithXSRF(!config.HTTP.DisableXSRF),
 	)

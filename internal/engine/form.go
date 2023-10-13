@@ -3,7 +3,6 @@ package engine
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -14,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/reddec/web-form/internal/notifications"
 	"github.com/reddec/web-form/internal/schema"
 	"github.com/reddec/web-form/internal/utils"
 )
@@ -22,31 +22,42 @@ type Storage interface {
 	Store(ctx context.Context, table string, fields map[string]any) (map[string]any, error)
 }
 
-type WebhooksDispatcher interface {
-	Dispatch(ctx context.Context, webhook schema.Webhook, payload []byte) error
+type WebhooksFactory interface {
+	Create(webhook schema.Webhook) notifications.Notification
 }
 
 type FormConfig struct {
-	Definition         schema.Form        // schema definition
-	Renderer           *Renderer          // renderer for template blocks
-	ViewForm           *template.Template // template to show main form
-	ViewResult         *template.Template // template to show result after submit
-	Storage            Storage            // where to store data
-	WebhooksDispatcher WebhooksDispatcher // how to execute webhooks
-	XSRF               bool               // check XSRF token. Disable if form is exposed as API.
+	Definition      schema.Form        // schema definition
+	Renderer        *Renderer          // renderer for template blocks
+	ViewForm        *template.Template // template to show main form
+	ViewResult      *template.Template // template to show result after submit
+	Storage         Storage            // where to store data
+	WebhooksFactory WebhooksFactory
+	XSRF            bool // check XSRF token. Disable if form is exposed as API.
 }
 
 func NewForm(config FormConfig, options ...FormOption) *Form {
 	for _, opt := range options {
 		opt(&config)
 	}
+
+	var destinations []notifications.Notification
+
+	if config.WebhooksFactory != nil {
+		for _, webhook := range config.Definition.Webhooks {
+			destinations = append(destinations, config.WebhooksFactory.Create(webhook))
+		}
+	}
+
 	return &Form{
-		config: config,
+		destinations: destinations,
+		config:       config,
 	}
 }
 
 type Form struct {
-	config FormConfig
+	destinations []notifications.Notification
+	config       FormConfig
 }
 
 func (f *Form) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -119,9 +130,9 @@ func (f *Form) submitForm(writer http.ResponseWriter, request *http.Request) {
 	rc := &ResultContext{
 		req:    request,
 		render: f.config.Renderer,
-		Form:   f.config.Definition,
-		Error:  storeErr,
-		Result: result,
+		form:   f.config.Definition,
+		error:  storeErr,
+		result: result,
 	}
 
 	var buffer bytes.Buffer
@@ -136,27 +147,18 @@ func (f *Form) submitForm(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 	} else {
 		writer.WriteHeader(http.StatusCreated)
-		if err := f.sendWebhooks(request.Context(), rc); err != nil {
-			slog.Error("failed send webhooks", "error", err)
-		}
+		f.sendNotifications(request.Context(), rc)
 	}
 	_, _ = writer.Write(buffer.Bytes())
 }
 
-func (f *Form) sendWebhooks(ctx context.Context, rc *ResultContext) error {
-	for _, wh := range f.config.Definition.Webhooks {
-		wh := wh
-		payload, err := renderWebhook(&wh, rc)
-		if err != nil {
-			slog.Error("failed render payload for webhook", "form", f.config.Definition.Title, "webhook", wh.URL, "error", err)
+func (f *Form) sendNotifications(ctx context.Context, rc *ResultContext) {
+	for _, notify := range f.destinations {
+		if err := notify.Dispatch(ctx, rc); err != nil {
+			slog.Error("failed dispatch notification", "form", f.config.Definition.Name, "error", err)
 			continue
 		}
-
-		if err := f.config.WebhooksDispatcher.Dispatch(ctx, wh, payload); err != nil {
-			return fmt.Errorf("dispatch webhook: %w", err)
-		}
 	}
-	return nil
 }
 
 //nolint:cyclop
@@ -251,13 +253,25 @@ type fieldError struct {
 type ResultContext struct {
 	req    *http.Request
 	render *Renderer
-	Form   schema.Form
-	Error  error
-	Result map[string]any
+	form   schema.Form
+	error  error
+	result map[string]any
+}
+
+func (rc *ResultContext) Form() schema.Form {
+	return rc.form
+}
+
+func (rc *ResultContext) Error() error {
+	return rc.error
+}
+
+func (rc *ResultContext) Result() map[string]any {
+	return rc.result
 }
 
 func (rc *ResultContext) Render(value string) (string, error) {
-	return rc.render.Render(value, rc.req, rc.Result, rc.Error)
+	return rc.render.Render(value, rc.req, rc.result, rc.error)
 }
 
 type ViewContext struct {
@@ -380,11 +394,4 @@ type View struct {
 
 func (v *View) Render(value string) (string, error) {
 	return v.render.Render(value, v.req, nil, nil)
-}
-
-func renderWebhook(wh *schema.Webhook, rc *ResultContext) ([]byte, error) {
-	if wh.Message == nil {
-		return json.Marshal(rc.Result)
-	}
-	return wh.Message.Render(rc)
 }

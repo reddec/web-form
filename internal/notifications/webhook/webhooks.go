@@ -3,6 +3,7 @@ package webhook
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/reddec/web-form/internal/notifications"
 	"github.com/reddec/web-form/internal/schema"
 )
 
@@ -34,7 +36,7 @@ type Dispatcher struct {
 	tasks chan webhookTask
 }
 
-func (wd *Dispatcher) Dispatch(ctx context.Context, webhook schema.Webhook, payload []byte) error {
+func (wd *Dispatcher) Create(webhook schema.Webhook) notifications.Notification {
 	if webhook.Timeout <= 0 {
 		webhook.Timeout = defaultTimeout
 	}
@@ -48,12 +50,13 @@ func (wd *Dispatcher) Dispatch(ctx context.Context, webhook schema.Webhook, payl
 		webhook.Method = defaultMethod
 	}
 
-	select {
-	case wd.tasks <- webhookTask{webhook: webhook, payload: payload}:
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-	return nil
+	return notifications.NotificationFunc(func(ctx context.Context, event notifications.Event) error {
+		payload, err := renderWebhook(webhook, event)
+		if err != nil {
+			return fmt.Errorf("render webhook: %w", err)
+		}
+		return wd.enqueue(ctx, webhook, payload)
+	})
 }
 
 func (wd *Dispatcher) Run(ctx context.Context) {
@@ -74,6 +77,15 @@ func (wd *Dispatcher) Run(ctx context.Context) {
 			return
 		}
 	}
+}
+
+func (wd *Dispatcher) enqueue(ctx context.Context, webhook schema.Webhook, payload []byte) error {
+	select {
+	case wd.tasks <- webhookTask{webhook: webhook, payload: payload}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return nil
 }
 
 type webhookTask struct {
@@ -134,4 +146,11 @@ func (wt *webhookTask) trySend(global context.Context) error {
 		return fmt.Errorf("%w: %d", ErrNonSuccessCode, res.StatusCode)
 	}
 	return nil
+}
+
+func renderWebhook(webhook schema.Webhook, event notifications.Event) ([]byte, error) {
+	if webhook.Message == nil {
+		return json.Marshal(event.Result())
+	}
+	return webhook.Message.Render(event)
 }
