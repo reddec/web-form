@@ -11,7 +11,8 @@ services:
       - db
     environment:
       STORAGE: database
-      DB_URL: postgres://postgres:postgres@db:5432/postgres?sslmode=disable
+      AMQP_URL: "amqp://guest:guest@rabbitmq"
+      DB_URL: "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
       DB_DIALECT: postgres
     ports:
       - 127.0.0.1:8080:8080
@@ -19,3 +20,7 @@ services:
       - ./configs:/configs:ro
       - ./migrations:/migrations:ro
       - ./assets:/assets:ro
+
+  # everything bellow is optional
+  rabbitmq:
+    image: rabbitmq:3.12

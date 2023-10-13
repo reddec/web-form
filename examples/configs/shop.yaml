@@ -105,7 +105,28 @@ webhooks:
     interval: 10s
     timeout: 30s
     method: PUT
+    headers:
+      Authorization: token xyz
 
   - url: https://example.com/notify-to-telegram
     message: |
-      #{{ .Result.ID }} New pizza ordered.
+      #{{ .Result.id }} New pizza ordered.
+
+amqp:
+  - key: "form.shop.submission"
+
+  - key: "form.shop.withtype"
+    exchange: amq.topic
+    type: application/json
+
+  - exchange: amq.topic
+    key: "form.shop.{{.Result.id}}"
+    retry: 3
+    interval: 10s
+    timeout: 30s
+    headers:
+      source: pizza-shop
+    id: "{{.Result.id}}"
+    correlation: "corr-{{.Result.id}}"
+    message: |
+      #{{ .Result.id }} New pizza ordered.

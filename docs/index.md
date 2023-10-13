@@ -10,8 +10,9 @@ Additionally, there is an option to disable the UI for browsing available forms.
 offers [OIDC](authorization.md) integration for authorization, with the ability to use OIDC claims, such as usernames,
 in templating and default values.
 
-WebForms allows for the sending of multiple POST requests ([WebHooks](webhooks.md)) after form submissions to facilitate
-integration with external systems. It provides a configurable retry strategy for reliability.
+WebForms allows for the sending of multiple notifications (ex: [WebHooks](notifications.md#webhooks)
+or [AMQP](notifications.md#amqp)) after form submissions to facilitate integration with external systems. It provides a
+configurable retry strategy for reliability.
 
 Flexible [templating](template.md) enables the prefilling of fields and the generation of personalized greeting
 messages.

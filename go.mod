@@ -16,6 +16,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/ory/dockertest/v3 v3.10.0
+	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/reddec/oidc-login v0.2.1
 	github.com/rubenv/sql-migrate v1.5.2
 	github.com/stretchr/testify v1.8.4

@@ -13,17 +13,18 @@ mode.
 
 See [examples](https://github.com/reddec/web-form/tree/master/examples) for inspirations.
 
-| Field         | Type                     | Description                                                                                    |
-|---------------|--------------------------|------------------------------------------------------------------------------------------------|
-| `name`        | string                   | unique form name, if not set - file name without extension will be used                        |
-| `table`       | string                   | database table name (database mode), or directory name (files mode)                            |
-| `title`       | string                   | short form title/name                                                                          |
-| `description` | string                   | **markdown + [template](template.md)** description of the form                                 |
-| `fields`      | [][Field](fields.md)     | list of fields definitions                                                                     |
-| `webhooks`    | [][Webhook](webhooks.md) | list of webhooks                                                                               |
-| `success`     | string                   | **markdown + [template](template.md)** message to show in case submission was successful       |
-| `failed`      | string                   | **markdown + [template](template.md)** message to show in case submission failed               |
-| `form`        | string                   | optional policy expression (OIDC only) - see details [here](./authorization.md#access-control) |
+| Field         | Type                                   | Description                                                                                    |
+|---------------|----------------------------------------|------------------------------------------------------------------------------------------------|
+| `name`        | string                                 | unique form name, if not set - file name without extension will be used                        |
+| `table`       | string                                 | database table name (database mode), or directory name (files mode)                            |
+| `title`       | string                                 | short form title/name                                                                          |
+| `description` | string                                 | **markdown + [template](template.md)** description of the form                                 |
+| `fields`      | [][Field](fields.md)                   | list of fields definitions                                                                     |
+| `webhooks`    | [][Webhook](notifications.md#webhooks) | list of webhooks                                                                               |
+| `amqp`        | [][AMQP](notifications.md#amqp)        | list of AMQP notifications                                                                     |
+| `success`     | string                                 | **markdown + [template](template.md)** message to show in case submission was successful       |
+| `failed`      | string                                 | **markdown + [template](template.md)** message to show in case submission failed               |
+| `form`        | string                                 | optional policy expression (OIDC only) - see details [here](./authorization.md#access-control) |
 
 Default message for `success`:
 
@@ -136,6 +137,9 @@ webhooks:
   - url: https://example.com/notify-to-telegram
     message: |
       #{{ .Result.ID }} New pizza ordered.
+
+amqp:
+  - key: "form.shop.submission"
 ```
 
 <!-- {% endraw %} -->

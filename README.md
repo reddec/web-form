@@ -10,8 +10,9 @@ Additionally, there is an option to disable the UI for browsing available forms.
 offers [OIDC](https://web-form.reddec.net/authorization) integration for authorization, with the ability to use OIDC claims, such as usernames,
 in templating and default values.
 
-WebForms allows for the sending of multiple POST requests ([WebHooks](https://web-form.reddec.net/webhooks)) after form submissions to facilitate
-integration with external systems. It provides a configurable retry strategy for reliability.
+WebForms allows for the sending of multiple notifications (ex: [WebHooks](https://web-form.reddec.net/notifications#webhooks)
+or [AMQP](https://web-form.reddec.net/notifications#amqp)) after form submissions to facilitate integration with external systems.
+It provides a configurable retry strategy for reliability.
 
 Flexible [templating](https://web-form.reddec.net/template) enables the prefilling of fields and the generation of personalized greeting
 messages.

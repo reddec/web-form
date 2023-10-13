@@ -30,7 +30,7 @@ For example `{{$.User}}` will return username or empty string.
 | `Groups`  | []string                                        | (optional) list of user groups from OIDC claims |
 | `Email`   | string                                          | (optional) user email from OIDC claims          |
 
-## Context for webhooks
+## Context for notifications
 
 | Name     | Type                                            | Description            |
 |----------|-------------------------------------------------|------------------------|

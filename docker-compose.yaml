@@ -9,3 +9,9 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - 127.0.0.1:5432:5432
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+      - 127.0.0.1:15672:15672
+      - 127.0.0.1:5672:5672

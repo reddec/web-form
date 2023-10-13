@@ -15,6 +15,7 @@ import (
 
 	"github.com/reddec/web-form/internal/assets"
 	"github.com/reddec/web-form/internal/engine"
+	"github.com/reddec/web-form/internal/notifications/amqp"
 	"github.com/reddec/web-form/internal/notifications/webhook"
 	"github.com/reddec/web-form/internal/schema"
 	"github.com/reddec/web-form/internal/storage"
@@ -58,8 +59,13 @@ type Config struct {
 		Path string `long:"path" env:"PATH" description:"Root dir for form results" default:"results"`
 	} `group:"Files storage" namespace:"files" env-namespace:"FILES"`
 	Webhooks struct {
-		Buffer int `long:"buffer" env:"BUFFER" description:"Buffer size before processing" default:"100"`
+		Buffer int `long:"buffer" env:"BUFFER" description:"Internal queue size before processing" default:"100"`
 	} `group:"Webhooks general configuration" namespace:"webhooks" env-namespace:"WEBHOOKS"`
+	AMQP struct {
+		URL     string `long:"url" env:"URL" description:"AMQP broker URL" default:"amqp://guest:guest@localhost"`
+		Buffer  int    `long:"buffer" env:"BUFFER" description:"Internal queue size before processing" default:"100"`
+		Workers int    `long:"workers" env:"WORKERS" description:"Number of parallel publishers" default:"4"`
+	} `group:"AMQP configuration" namespace:"amqp" env-namespace:"AMQP"`
 	HTTP struct {
 		Assets       string        `long:"assets" env:"ASSETS" description:"Directory for assets (static) files"`
 		Bind         string        `long:"bind" env:"BIND" description:"Binding address" default:":8080"`
@@ -101,6 +107,7 @@ func main() {
 	}
 }
 
+//nolint:cyclop
 func run(ctx context.Context, config Config) error {
 	router := chi.NewRouter()
 
@@ -165,11 +172,14 @@ func run(ctx context.Context, config Config) error {
 
 	// webhooks dispatcher
 	webhooks := webhook.New(config.Webhooks.Buffer)
+	// amqp dispatcher - lazy loading, so URL validity not critical here
+	broker := amqp.New(config.AMQP.URL, config.AMQP.Buffer)
 
 	srv, err := engine.New(engine.Config{
 		Forms:           forms,
 		Storage:         store,
 		WebhooksFactory: webhooks,
+		AMQPFactory:     broker,
 		Listing:         !config.DisableListing,
 	},
 		engine.WithXSRF(!config.HTTP.DisableXSRF),
@@ -207,6 +217,13 @@ func run(ctx context.Context, config Config) error {
 		webhooks.Run(ctx)
 		return nil
 	})
+
+	for i := 0; i < config.AMQP.Workers; i++ {
+		wg.Go(func() error {
+			broker.Run(ctx)
+			return nil
+		})
+	}
 
 	wg.Go(func() error {
 		var err error

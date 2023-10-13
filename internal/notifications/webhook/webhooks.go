@@ -3,7 +3,6 @@ package webhook
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -51,7 +50,7 @@ func (wd *Dispatcher) Create(webhook schema.Webhook) notifications.Notification 
 	}
 
 	return notifications.NotificationFunc(func(ctx context.Context, event notifications.Event) error {
-		payload, err := renderWebhook(webhook, event)
+		payload, err := notifications.RenderPayload(webhook.Message, event)
 		if err != nil {
 			return fmt.Errorf("render webhook: %w", err)
 		}
@@ -146,11 +145,4 @@ func (wt *webhookTask) trySend(global context.Context) error {
 		return fmt.Errorf("%w: %d", ErrNonSuccessCode, res.StatusCode)
 	}
 	return nil
-}
-
-func renderWebhook(webhook schema.Webhook, event notifications.Event) ([]byte, error) {
-	if webhook.Message == nil {
-		return json.Marshal(event.Result())
-	}
-	return webhook.Message.Render(event)
 }

@@ -33,7 +33,12 @@ Files storage:
 --files.path=                   Root dir for form results (default: results) [$FILES_PATH]
 
 Webhooks general configuration:
---webhooks.buffer=              Buffer size before processing (default: 100) [$WEBHOOKS_BUFFER]
+--webhooks.buffer=              Internal queue size before processing (default: 100) [$WEBHOOKS_BUFFER]
+
+AMQP configuration:
+--amqp.url=                     AMQP broker URL (default: amqp://guest:guest@localhost) [$AMQP_URL]
+--amqp.buffer=                  Internal queue size before processing (default: 100) [$AMQP_BUFFER]
+--amqp.workers=                 Number of parallel publishers (default: 4) [$AMQP_WORKERS]
 
 HTTP server configuration:
 --http.bind=                    Binding address (default: :8080) [$HTTP_BIND]

@@ -20,15 +20,16 @@ type Template template.Template
 type Policy struct{ cel.Program }
 
 type Form struct {
-	Name        string // unique form name, if not set - file name without extension will be used.
-	Table       string // database table name
-	Title       string // optional title for the form
-	Description string // (markdown) optional description of the form
-	Fields      []Field
-	Webhooks    []Webhook
-	Success     string  // markdown message for success (also go template with available .Result)
-	Failed      string  // markdown message for failed (also go template with .Error)
-	Policy      *Policy // optional access policy
+	Name        string    // unique form name, if not set - file name without extension will be used.
+	Table       string    // database table name
+	Title       string    // optional title for the form
+	Description string    // (markdown) optional description of the form
+	Fields      []Field   // form fields
+	Webhooks    []Webhook // Webhook (HTTP) notification
+	AMQP        []AMQP    // AMQP notification
+	Success     string    // markdown message for success (also go template with available .Result)
+	Failed      string    // markdown message for failed (also go template with .Error)
+	Policy      *Policy   // optional access policy
 }
 
 // IsAllowed checks permission for the provided credentials.
@@ -97,6 +98,19 @@ type Webhook struct {
 	Interval time.Duration     // interval between attempts (for non 2xx code)
 	Headers  map[string]string // arbitrary headers (ex: Authorization)
 	Message  *Template         // payload content, if not set - JSON representation of storage result
+}
+
+type AMQP struct {
+	Exchange    string            // Exchange name, can be empty
+	Key         *Template         // Routing key, usually required
+	Retry       int               // maximum number of retries (negative means no retries)
+	Timeout     time.Duration     // publish timeout
+	Interval    time.Duration     // interval between attempts (publish message)
+	Headers     map[string]string // arbitrary headers (only string supported)
+	Type        string            // optional content type property; if not set and message is nil, type is set to application/json
+	Correlation *Template         // optional correlation ID template (commonly result ID)
+	ID          *Template         // optional correlation ID template (commonly result ID), useful for client-side deduplication
+	Message     *Template         // payload content, if not set - JSON representation of storage result
 }
 
 type Option struct {

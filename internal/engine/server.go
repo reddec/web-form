@@ -22,6 +22,7 @@ type Config struct {
 	Forms           []schema.Form
 	Storage         Storage
 	WebhooksFactory WebhooksFactory
+	AMQPFactory     AMQPFactory
 	Listing         bool
 }
 
@@ -54,6 +55,7 @@ func New(cfg Config, options ...FormOption) (http.Handler, error) {
 			ViewResult:      templates.Lookup("result.gohtml"),
 			Storage:         cfg.Storage,
 			WebhooksFactory: cfg.WebhooksFactory,
+			AMQPFactory:     cfg.AMQPFactory,
 		}, options...))
 	}
 	if cfg.Listing {

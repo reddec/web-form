@@ -26,6 +26,10 @@ type WebhooksFactory interface {
 	Create(webhook schema.Webhook) notifications.Notification
 }
 
+type AMQPFactory interface {
+	Create(definition schema.AMQP) notifications.Notification
+}
+
 type FormConfig struct {
 	Definition      schema.Form        // schema definition
 	Renderer        *Renderer          // renderer for template blocks
@@ -33,6 +37,7 @@ type FormConfig struct {
 	ViewResult      *template.Template // template to show result after submit
 	Storage         Storage            // where to store data
 	WebhooksFactory WebhooksFactory
+	AMQPFactory     AMQPFactory
 	XSRF            bool // check XSRF token. Disable if form is exposed as API.
 }
 
@@ -46,6 +51,12 @@ func NewForm(config FormConfig, options ...FormOption) *Form {
 	if config.WebhooksFactory != nil {
 		for _, webhook := range config.Definition.Webhooks {
 			destinations = append(destinations, config.WebhooksFactory.Create(webhook))
+		}
+	}
+
+	if config.AMQPFactory != nil {
+		for _, definition := range config.Definition.AMQP {
+			destinations = append(destinations, config.AMQPFactory.Create(definition))
 		}
 	}
 
@@ -152,13 +163,22 @@ func (f *Form) submitForm(writer http.ResponseWriter, request *http.Request) {
 	_, _ = writer.Write(buffer.Bytes())
 }
 
-func (f *Form) sendNotifications(ctx context.Context, rc *ResultContext) {
+func (f *Form) sendNotifications(ctx context.Context, rc notifications.Event) {
+	// send all notifications in parallel to avoid blocking in case one of dispatcher is slow/full
+	var wg sync.WaitGroup
+
 	for _, notify := range f.destinations {
-		if err := notify.Dispatch(ctx, rc); err != nil {
-			slog.Error("failed dispatch notification", "form", f.config.Definition.Name, "error", err)
-			continue
-		}
+		notify := notify
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := notify.Dispatch(ctx, rc); err != nil {
+				slog.Error("failed dispatch notification", "form", f.config.Definition.Name, "error", err)
+			}
+		}()
 	}
+
+	wg.Wait()
 }
 
 //nolint:cyclop

@@ -102,6 +102,17 @@ func (t *Template) Render(data any) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
+func (t *Template) RenderString(data any) (string, error) {
+	if t == nil {
+		return "", nil
+	}
+	v, err := t.Render(data)
+	if err != nil {
+		return "", err
+	}
+	return string(v), nil
+}
+
 func (p *Policy) UnmarshalText(text []byte) error {
 	env, err := cel.NewEnv(
 		cel.Variable("user", cel.StringType),
