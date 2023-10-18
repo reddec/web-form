@@ -87,7 +87,7 @@ func (s *pgStore) Store(ctx context.Context, table string, fields map[string]any
 	}
 	defer rows.Close()
 	if !rows.Next() {
-		return nil, fmt.Errorf("get row: %w", err)
+		return nil, fmt.Errorf("get row: %w", rows.Err())
 	}
 
 	descriptions := rows.FieldDescriptions()
