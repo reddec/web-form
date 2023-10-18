@@ -18,7 +18,7 @@ func (nf NotificationFunc) Dispatch(ctx context.Context, event Event) error {
 }
 
 type Event interface {
-	Form() schema.Form
+	Form() *schema.Form
 	Error() error
 	Result() map[string]any
 }

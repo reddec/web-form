@@ -53,6 +53,7 @@ func New(cfg Config, options ...FormOption) (http.Handler, error) {
 			Renderer:        renderer,
 			ViewForm:        templates.Lookup("form.gohtml"),
 			ViewResult:      templates.Lookup("result.gohtml"),
+			ViewCode:        templates.Lookup("access.gohtml"),
 			Storage:         cfg.Storage,
 			WebhooksFactory: cfg.WebhooksFactory,
 			AMQPFactory:     cfg.AMQPFactory,

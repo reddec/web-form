@@ -1,5 +1,9 @@
 package utils
 
+import (
+	"gopkg.in/yaml.v3"
+)
+
 func Uniq[T comparable](values []T) []T {
 	var s = make(map[T]struct{}, len(values))
 	var out = make([]T, 0, len(values))
@@ -35,6 +39,15 @@ func (s Set[T]) Add(values ...T) {
 	for _, v := range values {
 		s[v] = struct{}{}
 	}
+}
+
+func (s *Set[T]) UnmarshalYAML(value *yaml.Node) error {
+	var data []T
+	if err := value.Decode(&data); err != nil {
+		return err
+	}
+	*s = NewSet(data...)
+	return nil
 }
 
 func Keys[T comparable, V any](store map[T]V) []T {

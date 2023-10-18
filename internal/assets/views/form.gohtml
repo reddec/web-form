@@ -84,7 +84,9 @@
     </section>
     <br/>
     <form method="post" class="box">
-
+        {{- if .Form.HasCodeAccess}}
+            <input type="hidden" name="__access_code" value="{{.Code}}"/>
+        {{- end}}
         <input type="hidden" name="_xsrf" value="{{.XSRF}}"/>
         {{- range $field := .Form.Fields}}
             {{- if not $field.Hidden}}

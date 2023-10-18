@@ -20,9 +20,17 @@
                 </div>
             {{- end}}
             <br/>
-            <a class="button is-primary" href="{{$.Form.Name}}">send one more time..</a>
+            {{- if $.Form.HasCodeAccess}}
+                <form method="post" action="{{$.Form.Name}}">
+                    <input type="hidden" name="__access_code" value="{{.Code}}"/>
+                    <input type="hidden" name="__fresh" value="true"/>
+                    <input type="hidden" name="_xsrf" value="{{.XSRF}}"/>
+                    <button class="button is-primary">send one more time..</button>
+                </form>
+            {{- else}}
+                <a class="button is-primary" href="{{$.Form.Name}}">send one more time..</a>
+            {{- end}}
         </div>
 </section>
 </body>
-<link rel="stylesheet" href="../static/css/materialdesignicons.min.css">
 </html>

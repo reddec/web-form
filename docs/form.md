@@ -24,7 +24,8 @@ See [examples](https://github.com/reddec/web-form/tree/master/examples) for insp
 | `amqp`        | [][AMQP](notifications.md#amqp)        | list of AMQP notifications                                                                     |
 | `success`     | string                                 | **markdown + [template](template.md)** message to show in case submission was successful       |
 | `failed`      | string                                 | **markdown + [template](template.md)** message to show in case submission failed               |
-| `form`        | string                                 | optional policy expression (OIDC only) - see details [here](./authorization.md#access-control) |
+| `policy`      | string                                 | optional policy expression (OIDC only) - see details [here](./authorization.md#access-control) |
+
 
 Default message for `success`:
 

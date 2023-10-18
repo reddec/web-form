@@ -18,6 +18,11 @@ import (
 	"github.com/reddec/web-form/internal/utils"
 )
 
+const (
+	accessCodeField = "__access_code"
+	freshField      = "__fresh"
+)
+
 type Storage interface {
 	Store(ctx context.Context, table string, fields map[string]any) (map[string]any, error)
 }
@@ -35,6 +40,7 @@ type FormConfig struct {
 	Renderer        *Renderer          // renderer for template blocks
 	ViewForm        *template.Template // template to show main form
 	ViewResult      *template.Template // template to show result after submit
+	ViewCode        *template.Template // template to show code access
 	Storage         Storage            // where to store data
 	WebhooksFactory WebhooksFactory
 	AMQPFactory     AMQPFactory
@@ -80,6 +86,17 @@ func (f *Form) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if !f.validateAccessCode(writer, request) {
+		return
+	}
+
+	freshAccess := request.PostFormValue(freshField) == "true"
+	if freshAccess {
+		// force show default form
+		// (hack) we are changing request method to let code handle further the rest.
+		request.Method = http.MethodGet
+	}
+
 	switch request.Method {
 	case http.MethodGet:
 		f.renderForm(http.StatusOK, writer, request, nil)
@@ -97,12 +114,55 @@ func (f *Form) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
+func (f *Form) validateAccessCode(writer http.ResponseWriter, request *http.Request) bool {
+	if !f.config.Definition.HasCodeAccess() {
+		// no codes, no restrictions
+		return true
+	}
+	// if code access is required, only POST is allowed
+	if request.Method != http.MethodPost {
+		f.renderCodeForm(http.StatusUnauthorized, writer, request)
+		return false
+	}
+	code := request.PostFormValue(accessCodeField)
+
+	if !f.config.Definition.Codes.Has(code) {
+		// wrong code, unconditionally show access page
+		f.renderCodeForm(http.StatusUnauthorized, writer, request, flashMessage{
+			Text: "invalid code",
+			Type: flashError,
+		})
+		return false
+	}
+	// process as normal
+	return true
+}
+
+func (f *Form) renderCodeForm(code int, writer http.ResponseWriter, request *http.Request, flashMessages ...flashMessage) {
+	var buffer bytes.Buffer
+	err := f.config.ViewCode.Execute(&buffer, &ViewContext{
+		View:    f.config.Renderer.View(request),
+		XSRF:    XSRF(writer),
+		Form:    f.config.Definition,
+		Flashes: flashMessages,
+	})
+	if err != nil {
+		slog.Error("failed render form access code", "form", f.config.Definition.Title, "error", err)
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	writer.Header().Set("Content-Type", "text/html")
+	writer.WriteHeader(code)
+	_, _ = writer.Write(buffer.Bytes())
+}
+
 func (f *Form) renderForm(code int, writer http.ResponseWriter, request *http.Request, fieldErrors []fieldError) {
 	vc := &ViewContext{
 		Form:   f.config.Definition,
 		View:   f.config.Renderer.View(request),
 		XSRF:   XSRF(writer),
 		Errors: fieldErrors,
+		Code:   request.FormValue(accessCodeField),
 	}
 
 	var buffer bytes.Buffer
@@ -139,6 +199,7 @@ func (f *Form) submitForm(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	rc := &ResultContext{
+		xsrf:   XSRF(writer),
 		req:    request,
 		render: f.config.Renderer,
 		form:   f.config.Definition,
@@ -276,10 +337,15 @@ type ResultContext struct {
 	form   schema.Form
 	error  error
 	result map[string]any
+	xsrf   string
 }
 
-func (rc *ResultContext) Form() schema.Form {
-	return rc.form
+func (rc *ResultContext) Code() string {
+	return rc.req.PostFormValue(accessCodeField)
+}
+
+func (rc *ResultContext) Form() *schema.Form {
+	return &rc.form
 }
 
 func (rc *ResultContext) Error() error {
@@ -290,15 +356,21 @@ func (rc *ResultContext) Result() map[string]any {
 	return rc.result
 }
 
+func (rc *ResultContext) XSRF() string {
+	return rc.xsrf
+}
+
 func (rc *ResultContext) Render(value string) (string, error) {
 	return rc.render.Render(value, rc.req, rc.result, rc.error)
 }
 
 type ViewContext struct {
 	*View
-	XSRF   string
-	Form   schema.Form
-	Errors []fieldError
+	Flashes []flashMessage
+	XSRF    string
+	Form    schema.Form
+	Errors  []fieldError
+	Code    string // actual code used by user
 }
 
 func (vc *ViewContext) LastValue(name string) string {
@@ -341,6 +413,7 @@ func (r *Renderer) Render(value string, req *http.Request, result map[string]any
 	}
 
 	vc := renderContext{
+		Code:    req.PostFormValue(accessCodeField),
 		Headers: req.Header,
 		Query:   req.URL.Query(),
 		Form:    req.Form,
@@ -383,6 +456,7 @@ type renderContext struct {
 	Form    url.Values
 	Result  map[string]any
 	Error   error
+	Code    string
 	creds   *schema.Credentials
 }
 
@@ -414,4 +488,15 @@ type View struct {
 
 func (v *View) Render(value string) (string, error) {
 	return v.render.Render(value, v.req, nil, nil)
+}
+
+type flashType string
+
+const (
+	flashError flashType = "danger"
+)
+
+type flashMessage struct {
+	Text string
+	Type flashType
 }

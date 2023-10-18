@@ -2,8 +2,11 @@
 
 By-default, the solution has no authorization. However, it is possible to use
 any [OIDC](https://auth0.com/docs/authenticate/protocols/openid-connect-protocol#:~:text=OpenID%20Connect%20(OIDC)%20is%20an,obtain%20basic%20user%20profile%20information)
--compliant provider to secure
-access to the forms.
+-compliant provider to secure access to the forms.
+
+The alternative solution is to set [codes](#codes) in forms definition.
+
+## OIDC
 
 OAuth callback URL is `<server-url>/oauth2/callback`. For example, if your public server url
 is `https://forms.example.com`, then callback url is `https://forms.example.com/oauth2/callback`.
@@ -42,9 +45,9 @@ OIDC_CLIENT_SECRET=M0QmHyHUqt1z17L8XwYiQeah9l1U7zNh
 OIDC_ISSUER=https://auth.example.com/realms/reddec
 ```
 
-## Access control
+### Access control
 
-since: 0.2.0
+> since: 0.2.0
 
 Each form has optional field `policy` which is a [CEL](https://github.com/google/cel-spec/blob/master/doc/intro.md)
 expression which can be used to define policy of who can access the form.
@@ -77,7 +80,6 @@ Allow access only for `admin` group
 policy: '"admin" in groups'
 ```
 
-
 Allow access only for `admin` or `sysadmin` groups
 
 ```yaml
@@ -104,4 +106,37 @@ Allow access only for user `reddec` or `admin`
 
 ```yaml
 policy: 'user == "reddec" || user == "admin"'
+```
+
+## Codes
+
+> since: 0.4.0
+
+Access control with codes allows you to define one or more codes for each form. Users attempting to access a form must
+provide a valid code. If no codes are set or an empty array is defined, access restrictions via codes are disabled,
+granting open access to the form.
+
+This access control mechanism is particularly valuable in the following scenarios:
+
+- **Public Forms:** Use access codes for public forms to restrict access to users who have the correct code. For
+  instance, you can protect a public event registration form to ensure that only registered attendees can submit their
+  information. Note: in this case you may want to disable forms listing (see [configuration](configuration.md)).
+
+- **Internal Separation:** When OIDC group-based restrictions are not applicable or practical, access
+  codes offer an alternative method for separating internal users' access. You can use access codes to distinguish
+  between different departments or roles within your organization.
+
+To get started with access control using codes for your forms, follow these steps:
+
+1. Generate random access code. For example by `pwgen -s 16 1`
+2. Define access codes for the forms where you want to enforce access restrictions in `codes` field.
+
+User-provided code is available via `.Code` parameter in [template context](template.md#context-for-defaults).
+
+### Examples
+
+```yaml
+codes:
+  - let-me-in
+  - my-great-company 
 ```

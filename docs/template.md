@@ -1,4 +1,5 @@
 # Templates
+
 <!--  {% raw %} --> 
 
 For `default` values, for result messages, for description
@@ -21,14 +22,15 @@ For example `{{$.User}}` will return username or empty string.
 > Note: if you advance user of Go templates, then you know when `$` can be omitted,
 > otherwise it's safe to use it always.
 
-| Name      | Type                                            | Description                                     |
-|-----------|-------------------------------------------------|-------------------------------------------------|
-| `Headers` | [url.Values](https://pkg.go.dev/net/url#Values) | Access to raw request headers                   |
-| `Query`   | [url.Values](https://pkg.go.dev/net/url#Values) | Access to raw request URL query params          |
-| `Form`    | [url.Values](https://pkg.go.dev/net/url#Values) | Access to raw request form values               |
-| `User`    | string                                          | (optional) username from OIDC claims            |
-| `Groups`  | []string                                        | (optional) list of user groups from OIDC claims |
-| `Email`   | string                                          | (optional) user email from OIDC claims          |
+| Name      | Type                                            | Description                                                                      |
+|-----------|-------------------------------------------------|----------------------------------------------------------------------------------|
+| `Headers` | [url.Values](https://pkg.go.dev/net/url#Values) | Access to raw request headers                                                    |
+| `Query`   | [url.Values](https://pkg.go.dev/net/url#Values) | Access to raw request URL query params                                           |
+| `Form`    | [url.Values](https://pkg.go.dev/net/url#Values) | Access to raw request form values                                                |
+| `User`    | string                                          | (optional) username from OIDC claims                                             |
+| `Groups`  | []string                                        | (optional) list of user groups from OIDC claims                                  |
+| `Email`   | string                                          | (optional) user email from OIDC claims                                           |
+| `Code`    | string                                          | (optional) [access code](authorization.md#codes) used by user to access the form |
 
 ## Context for notifications
 

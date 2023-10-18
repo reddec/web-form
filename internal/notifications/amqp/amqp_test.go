@@ -210,8 +210,8 @@ type Event struct {
 	definition schema.Form
 }
 
-func (ev *Event) Form() schema.Form {
-	return ev.definition
+func (ev *Event) Form() *schema.Form {
+	return &ev.definition
 }
 
 func (ev *Event) Error() error {

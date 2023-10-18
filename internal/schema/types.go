@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/cel-go/cel"
+	"github.com/reddec/web-form/internal/utils"
 )
 
 func Default() Form {
@@ -20,16 +21,17 @@ type Template template.Template
 type Policy struct{ cel.Program }
 
 type Form struct {
-	Name        string    // unique form name, if not set - file name without extension will be used.
-	Table       string    // database table name
-	Title       string    // optional title for the form
-	Description string    // (markdown) optional description of the form
-	Fields      []Field   // form fields
-	Webhooks    []Webhook // Webhook (HTTP) notification
-	AMQP        []AMQP    // AMQP notification
-	Success     string    // markdown message for success (also go template with available .Result)
-	Failed      string    // markdown message for failed (also go template with .Error)
-	Policy      *Policy   // optional access policy
+	Name        string            // unique form name, if not set - file name without extension will be used.
+	Table       string            // database table name
+	Title       string            // optional title for the form
+	Description string            // (markdown) optional description of the form
+	Fields      []Field           // form fields
+	Webhooks    []Webhook         // Webhook (HTTP) notification
+	AMQP        []AMQP            // AMQP notification
+	Success     string            // markdown message for success (also go template with available .Result)
+	Failed      string            // markdown message for failed (also go template with .Error)
+	Policy      *Policy           // optional access policy
+	Codes       utils.Set[string] // optional access tokens
 }
 
 // IsAllowed checks permission for the provided credentials.
@@ -50,6 +52,10 @@ func (f *Form) IsAllowed(creds *Credentials) bool {
 
 	v, ok := out.ConvertToType(cel.BoolType).Value().(bool)
 	return v && ok
+}
+
+func (f *Form) HasCodeAccess() bool {
+	return len(f.Codes) > 0
 }
 
 type Type string

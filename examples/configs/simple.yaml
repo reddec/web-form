@@ -24,3 +24,17 @@ fields:
     label: Birthday
     type: date
     required: true
+---
+name: code-access
+table: simple
+description: Code-based access
+fields:
+  - name: name
+    required: true
+    default: "{{.Code}}"
+  - name: year
+    required: true
+  - name: comment
+    multiline: true
+codes:
+  - reddec
