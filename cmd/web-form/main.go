@@ -14,11 +14,13 @@ import (
 	"time"
 
 	"github.com/reddec/web-form/internal/assets"
+	"github.com/reddec/web-form/internal/captcha"
 	"github.com/reddec/web-form/internal/engine"
 	"github.com/reddec/web-form/internal/notifications/amqp"
 	"github.com/reddec/web-form/internal/notifications/webhook"
 	"github.com/reddec/web-form/internal/schema"
 	"github.com/reddec/web-form/internal/storage"
+	"github.com/reddec/web-form/internal/web"
 
 	_ "modernc.org/sqlite"
 
@@ -85,6 +87,9 @@ type Config struct {
 		RedisIdle           int    `long:"redis-idle" env:"REDIS_IDLE" description:"Redis maximum number of idle connections" default:"1"`
 		RedisMaxConnections int    `long:"redis-max-connections" env:"REDIS_MAX_CONNECTIONS" description:"Redis maximum number of active connections" default:"10"`
 	} `group:"OIDC configuration" namespace:"oidc" env-namespace:"OIDC"`
+	Captcha struct {
+		Turnstile captcha.Turnstile `group:"Cloudflare Turnstile" namespace:"turnstile" env-namespace:"TURNSTILE"`
+	} `group:"Captcha configurations" namespace:"captcha" env-namespace:"CAPTCHA"`
 	ServerURL string `long:"server-url" env:"SERVER_URL" description:"Server public URL. Used for OIDC redirects. If not set - it will try to deduct"`
 }
 
@@ -181,6 +186,7 @@ func run(ctx context.Context, config Config) error {
 		WebhooksFactory: webhooks,
 		AMQPFactory:     broker,
 		Listing:         !config.DisableListing,
+		Captcha:         config.captcha(),
 	},
 		engine.WithXSRF(!config.HTTP.DisableXSRF),
 	)
@@ -307,6 +313,15 @@ func (cfg *Config) shouldMigrate() bool {
 		return nil
 	})
 	return migrate && err == nil
+}
+
+func (cfg *Config) captcha() []web.Captcha {
+	var ans []web.Captcha
+	if cfg.Captcha.Turnstile.SiteKey != "" {
+		slog.Info("Cloudflare Turnstile captcha enabled")
+		ans = append(ans, &cfg.Captcha.Turnstile)
+	}
+	return ans
 }
 
 type LoggerFunc struct{}

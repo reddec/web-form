@@ -85,7 +85,8 @@ client-side deduplication using attributes like message ID. In practice, duplica
 network delays.
 
 Connections to the brokers are established in a lazy manner. You can configure the maximum number of parallel
-submissions using the `workers` parameter. WebForms will automatically reconnect to the broker in case of any issues.
+submissions using the `workers` parameter (see [configuration](configuration.md#configuration)). WebForms will
+automatically reconnect to the broker in case of any issues.
 WebForm doesn't handle the definition of AMQP objects such as exchanges, queues, or bindings.
 This responsibility lies with the user.
 

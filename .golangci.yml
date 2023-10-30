@@ -24,3 +24,4 @@ linters:
     - tagalign
     - godox
     - maligned # this is pretty good linter, but not really needed here
+    - whitespace

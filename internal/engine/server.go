@@ -1,17 +1,16 @@
 package engine
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"html/template"
-	"log/slog"
+	"io/fs"
 	"net/http"
-	"strconv"
 
 	"github.com/reddec/web-form/internal/assets"
 	"github.com/reddec/web-form/internal/schema"
 	"github.com/reddec/web-form/internal/utils"
+	"github.com/reddec/web-form/internal/web"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -24,21 +23,17 @@ type Config struct {
 	WebhooksFactory WebhooksFactory
 	AMQPFactory     AMQPFactory
 	Listing         bool
+	Captcha         []web.Captcha
 }
 
 func New(cfg Config, options ...FormOption) (http.Handler, error) {
-	templates, err := template.New("").Funcs(utils.TemplateFuncs()).ParseFS(assets.Views, "views/*.gohtml")
-	if err != nil {
-		return nil, fmt.Errorf("parse templates: %w", err)
-	}
-	listView := templates.Lookup("list.gohtml")
-	if err != nil {
-		return nil, fmt.Errorf("get static dir: %w", err)
-	}
-
-	renderer := &Renderer{
-		funcs: utils.TemplateFuncs(),
-	}
+	views := assets.InsideViews()
+	listView := mustParse(views, "list.gohtml")
+	viewForm := mustParse(views, "form_base.gohtml", "form.gohtml")
+	viewSuccess := mustParse(views, "form_base.gohtml", "success.gohtml")
+	viewFail := mustParse(views, "form_base.gohtml", "failed.gohtml")
+	viewCode := mustParse(views, "form_base.gohtml", "access.gohtml")
+	viewForbidden := mustParse(views, "form_base.gohtml", "forbidden.gohtml")
 
 	mux := chi.NewMux()
 
@@ -50,23 +45,27 @@ func New(cfg Config, options ...FormOption) (http.Handler, error) {
 		usedName.Add(formDef.Name)
 		mux.Mount("/forms/"+formDef.Name, NewForm(FormConfig{
 			Definition:      formDef,
-			Renderer:        renderer,
-			ViewForm:        templates.Lookup("form.gohtml"),
-			ViewResult:      templates.Lookup("result.gohtml"),
-			ViewCode:        templates.Lookup("access.gohtml"),
+			ViewForm:        viewForm,
+			ViewSuccess:     viewSuccess,
+			ViewFail:        viewFail,
+			ViewCode:        viewCode,
+			ViewForbidden:   viewForbidden,
 			Storage:         cfg.Storage,
 			WebhooksFactory: cfg.WebhooksFactory,
 			AMQPFactory:     cfg.AMQPFactory,
+			Captcha:         cfg.Captcha,
 		}, options...))
 	}
 	if cfg.Listing {
-		mux.Get("/", listViewHandler(cfg.Forms, renderer, listView))
+		mux.Get("/", listViewHandler(cfg.Forms, listView))
 	}
 	return mux, nil
 }
 
-func listViewHandler(forms []schema.Form, render *Renderer, listView *template.Template) http.HandlerFunc {
+func listViewHandler(forms []schema.Form, listView *template.Template) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		req := web.NewRequest(writer, request)
+
 		creds := schema.CredentialsFromContext(request.Context())
 		var filteredForms = make([]schema.Form, 0, len(forms))
 		for _, f := range forms {
@@ -75,27 +74,34 @@ func listViewHandler(forms []schema.Form, render *Renderer, listView *template.T
 			}
 		}
 
-		vc := &serverViewContext{
-			View:        render.View(request),
-			Definitions: filteredForms,
-		}
-
-		var buffer bytes.Buffer
-		err := listView.Execute(&buffer, vc)
-		if err != nil {
-			slog.Error("failed render list view", "error", err)
-			writer.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		writer.Header().Set("Content-Type", "text/html")
-		writer.Header().Set("Content-Length", strconv.Itoa(buffer.Len()))
-		writer.WriteHeader(http.StatusOK)
-		_, _ = writer.Write(buffer.Bytes())
+		req.Set("Definitions", filteredForms)
+		req.Set("Context", newRequestContext(req))
+		req.Render(http.StatusOK, listView)
 	}
 }
 
-type serverViewContext struct {
-	*View
-	Definitions []schema.Form
+func mustParse(src fs.FS, base string, overlay ...string) *template.Template {
+	v, err := baseParse(src, base, overlay...)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+func baseParse(src fs.FS, base string, overlay ...string) (*template.Template, error) {
+	var root = template.New("").Funcs(utils.TemplateFuncs())
+	var files = append([]string{base}, overlay...)
+
+	for _, file := range files {
+		content, err := fs.ReadFile(src, file)
+		if err != nil {
+			return nil, fmt.Errorf("read %q: %w", file, err)
+		}
+		sub, err := root.Parse(string(content))
+		if err != nil {
+			return nil, fmt.Errorf("parse %q: %w", file, err)
+		}
+		root = sub
+	}
+	return root, nil
 }

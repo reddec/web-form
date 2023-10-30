@@ -9,7 +9,7 @@
 <body>
 <section class="section">
     <div class="container">
-        {{range $form := .Definitions}}
+        {{range $form := .State.Definitions}}
             <div class="card">
                 <header class="card-header">
                     <p class="card-header-title">
@@ -18,7 +18,7 @@
                 </header>
                 <div class="card-content">
                     <div class="content">
-                        {{($.Render $form.Description) | markdown}}
+                        {{$.State.Context | $form.Description.String | markdown}}
                     </div>
                 </div>
                 <footer class="card-footer">

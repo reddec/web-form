@@ -58,9 +58,24 @@ OIDC configuration:
 --oidc.redis-url=               Optional Redis URL for sessions. If not set - in-memory will be used [$OIDC_REDIS_URL]
 --oidc.redis-idle=              Redis maximum number of idle connections (default: 1) [$OIDC_REDIS_IDLE]
 --oidc.redis-max-connections=   Redis maximum number of active connections (default: 10) [$OIDC_REDIS_MAX_CONNECTIONS]
+
+Cloudflare Turnstile:
+--captcha.turnstile.site-key=   Widget access key [$CAPTCHA_TURNSTILE_SITE_KEY]
+--captcha.turnstile.secret-key= Server side secret key [$CAPTCHA_TURNSTILE_SECRET_KEY]
+--captcha.turnstile.timeout=    Validation request timeout (default: 3s) [$CAPTCHA_TURNSTILE_TIMEOUT]
 ```
 
 - By-default, by the root path `/` listing of all forms available. It can be disabled by `DISABLE_LISTING=true`
+
+## Captcha
+
+*since 0.3.0*
+
+WebForms offers CAPTCHA functionality for POST requests, which serves as a mechanism for verifying the
+authenticity of incoming requests during both form submission and access code submission processes. To enable CAPTCHA,
+JavaScript on the client side is a prerequisite.
+
+Currently only [Cloudflare Turnstile](https://www.cloudflare.com/products/turnstile/) captcha is supported.
 
 ## HTTP and TLS
 
@@ -84,7 +99,6 @@ By-default, it's disabled in CLI mode and enabled in [docker](docker.md) mode.
 
 It could be useful for embedding images or other things in templates. For example:
 
-
 ```yaml
 ---
 table: shop
@@ -93,7 +107,7 @@ description: |
   Welcome to our pizzeria!
 
   ![](/assets/logo.png)
-  
+
 # other configuration
 ```
 

@@ -34,6 +34,7 @@ fields:
     default: "{{.Code}}"
   - name: year
     required: true
+    default: '{{.Query.Get "year"}}'
   - name: comment
     multiline: true
 codes:

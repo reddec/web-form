@@ -31,11 +31,11 @@ func TestAMQP_Run(t *testing.T) {
 		require.NoError(t, define("", t.Name(), ""))
 
 		notify := factory.Create(schema.AMQP{
-			Key: mustTemplate(t.Name()), // when exchange not specified, routing key is queue name
+			Key: schema.MustTemplate[schema.NotifyContext](t.Name()), // when exchange not specified, routing key is queue name
 		})
 
-		err := notify.Dispatch(ctx, &Event{
-			result: map[string]any{"Name": t.Name()},
+		err := notify.Dispatch(ctx, schema.NotifyContext{
+			Result: map[string]any{"Name": t.Name()},
 		})
 		require.NoError(t, err)
 
@@ -50,17 +50,17 @@ func TestAMQP_Run(t *testing.T) {
 
 		notify := factory.Create(schema.AMQP{
 			Exchange: "test",
-			Key:      mustTemplate("full"),
+			Key:      schema.MustTemplate[schema.NotifyContext]("full"),
 			Headers: map[string]string{
 				"X-Hello": "World",
 			},
-			Correlation: mustTemplate("reply-{{.Result.ID}}"),
-			ID:          mustTemplate("{{.Result.ID}}"),
-			Message:     mustTemplate("{{.Result.Name}}"),
+			Correlation: schema.MustTemplate[schema.NotifyContext]("reply-{{.Result.ID}}"),
+			ID:          schema.MustTemplate[schema.NotifyContext]("{{.Result.ID}}"),
+			Message:     schema.MustTemplate[schema.NotifyContext]("{{.Result.Name}}"),
 		})
 
-		err := notify.Dispatch(ctx, &Event{
-			result: map[string]any{"Name": t.Name(), "ID": 1234},
+		err := notify.Dispatch(ctx, schema.NotifyContext{
+			Result: map[string]any{"Name": t.Name(), "ID": 1234},
 		})
 		require.NoError(t, err)
 
@@ -193,31 +193,4 @@ func TestMain(m *testing.M) {
 	}
 
 	os.Exit(code)
-}
-
-func mustTemplate(text string) *schema.Template {
-	var t schema.Template
-	err := t.UnmarshalText([]byte(text))
-	if err != nil {
-		panic(err)
-	}
-	return &t
-}
-
-type Event struct {
-	result     map[string]any
-	error      error
-	definition schema.Form
-}
-
-func (ev *Event) Form() *schema.Form {
-	return &ev.definition
-}
-
-func (ev *Event) Error() error {
-	return ev.error
-}
-
-func (ev *Event) Result() map[string]any {
-	return ev.result
 }

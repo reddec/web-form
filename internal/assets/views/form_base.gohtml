@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{or .State.Form.Title .State.Form.Name .State.Form.Table}}</title>
+</head>
+<body>
+<section class="section">
+    <div class="container">
+        <div class="box">
+            <h1 class="title is-1">{{or .State.Form.Title .State.Form.Name .State.Form.Table}}</h1>
+
+            {{block "main" .}}
+
+            {{end}}
+
+            {{- range .Messages}}
+                {{if eq .Name ""}}
+                    <div class="notification is-{{.Type}} mt-4">
+                        {{.Text}}
+                    </div>
+                {{- end }}
+            {{- end }}
+        </div>
+    </div>
+</section>
+<link rel="stylesheet" href="../static/css/bulma.min.css">
+<link rel="stylesheet" href="../static/css/materialdesignicons.min.css">
+</body>
+</html>

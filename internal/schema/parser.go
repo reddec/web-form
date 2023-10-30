@@ -1,11 +1,9 @@
 package schema
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"html/template"
 	"regexp"
 	"strconv"
 	"strings"
@@ -53,10 +51,10 @@ func (t Type) Parse(value string, locale *time.Location) (any, error) {
 	}
 }
 
-func (f *Field) Parse(value string, locale *time.Location, render interface{ Render(string) (string, error) }) (any, error) {
+func (f *Field) Parse(value string, locale *time.Location, viewCtx *RequestContext) (any, error) {
 	value = strings.TrimSpace(value)
 	if value == "" {
-		v, err := render.Render(f.Default)
+		v, err := f.Default.String(viewCtx)
 		if err != nil {
 			return nil, fmt.Errorf("render default value: %w", err)
 		}
@@ -85,32 +83,6 @@ func OptionValues(options ...Option) utils.Set[string] {
 		}
 	}
 	return utils.NewSet(ans...)
-}
-
-func (t *Template) UnmarshalText(text []byte) error {
-	v, err := template.New("").Funcs(utils.TemplateFuncs()).Parse(string(text))
-	if err != nil {
-		return err
-	}
-	*t = Template(*v)
-	return nil
-}
-
-func (t *Template) Render(data any) ([]byte, error) {
-	var buf bytes.Buffer
-	err := (*template.Template)(t).Execute(&buf, data)
-	return buf.Bytes(), err
-}
-
-func (t *Template) RenderString(data any) (string, error) {
-	if t == nil {
-		return "", nil
-	}
-	v, err := t.Render(data)
-	if err != nil {
-		return "", err
-	}
-	return string(v), nil
 }
 
 func (p *Policy) UnmarshalText(text []byte) error {
@@ -143,4 +115,96 @@ func WithCredentials(ctx context.Context, creds *Credentials) context.Context {
 func CredentialsFromContext(ctx context.Context) *Credentials {
 	c, _ := ctx.Value(credsKey{}).(*Credentials)
 	return c
+}
+
+// ParseForm converts user request to parsed field.
+//
+//nolint:cyclop
+func ParseForm(definition *Form, tzLocation *time.Location, viewCtx *RequestContext) (map[string]any, []FieldError) {
+	var fields = make(map[string]any, len(definition.Fields))
+	var fieldErrors []FieldError
+
+	for _, field := range definition.Fields {
+		field := field
+
+		var values []string
+		if field.Hidden || field.Disabled {
+			// if field is non-accessible by user we shall ignore user input and use default as value
+			v, err := field.Default.String(viewCtx)
+			if err != nil {
+				// super abnormal situation - default field failed so it's unfixable by user until configuration update
+				fieldErrors = append(fieldErrors, FieldError{
+					Name:  field.Name,
+					Error: err,
+				})
+				continue
+			}
+			values = append(values, v)
+		} else {
+			// collect all user input (could be more than one in case of array)
+			values = utils.Uniq(viewCtx.Form[field.Name])
+		}
+
+		if len(field.Options) > 0 {
+			// we need to check that all values belong to allowed values before parsing
+			// since we are using plain text comparison.
+			options := OptionValues(field.Options...)
+			if !options.Has(values...) {
+				fieldErrors = append(fieldErrors, FieldError{
+					Name:  field.Name,
+					Error: errors.New("selected not allowed option"),
+				})
+				continue
+			}
+		}
+
+		parsedValues, err := parseValues(values, &field, tzLocation, viewCtx)
+		if err != nil {
+			fieldErrors = append(fieldErrors, FieldError{
+				Name:  field.Name,
+				Error: err,
+			})
+			continue
+		}
+
+		if field.Required && len(parsedValues) == 0 {
+			// corner case - empty array for required field. Can happen if multi-select and nothing selected.
+			// for empty values it will be checked by field parser.
+			//
+			// We also need parse first to exclude empty values.
+			fieldErrors = append(fieldErrors, FieldError{
+				Name:  field.Name,
+				Error: errors.New("required field is not provided"),
+			})
+			continue
+		}
+
+		if field.Multiple {
+			fields[field.Name] = parsedValues
+		} else if len(parsedValues) > 0 {
+			fields[field.Name] = parsedValues[0]
+		}
+	}
+	return fields, fieldErrors
+}
+
+func parseValues(values []string, field *Field, tzLocation *time.Location, viewCtx *RequestContext) ([]any, error) {
+	var ans = make([]any, 0, len(values))
+	for _, value := range values {
+		value = strings.TrimSpace(value)
+		if len(value) == 0 {
+			continue
+		}
+		v, err := field.Parse(value, tzLocation, viewCtx)
+		if err != nil {
+			return nil, err
+		}
+		ans = append(ans, v)
+	}
+	return ans, nil
+}
+
+type FieldError struct {
+	Name  string
+	Error error
 }

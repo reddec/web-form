@@ -44,27 +44,31 @@ func (amqp *AMQP) Create(definition schema.AMQP) notifications.Notification {
 	if definition.Interval <= 0 {
 		definition.Interval = defaultInterval
 	}
-	if definition.Message == nil && definition.Type == "" {
-		definition.Type = "application/json" // nil message causes JSON payload
+	if !definition.Message.Valid {
+		// nil message causes JSON payload
+		if definition.Type == "" {
+			definition.Type = "application/json"
+		}
+		definition.Message = schema.MustTemplate[schema.NotifyContext]("{{.Result | toJson}}")
 	}
 
-	return notifications.NotificationFunc(func(ctx context.Context, event notifications.Event) error {
-		payload, err := notifications.RenderPayload(definition.Message, event)
+	return notifications.NotificationFunc(func(ctx context.Context, event schema.NotifyContext) error {
+		payload, err := definition.Message.Bytes(&event)
 		if err != nil {
 			return fmt.Errorf("render payload: %w", err)
 		}
 
-		key, err := definition.Key.RenderString(event)
+		key, err := definition.Key.String(&event)
 		if err != nil {
 			return fmt.Errorf("render routing key: %w", err)
 		}
 
-		correlationID, err := definition.Correlation.RenderString(event)
+		correlationID, err := definition.Correlation.String(&event)
 		if err != nil {
 			return fmt.Errorf("render correlation ID: %w", err)
 		}
 
-		messageID, err := definition.ID.RenderString(event)
+		messageID, err := definition.ID.String(&event)
 		if err != nil {
 			return fmt.Errorf("render message ID: %w", err)
 		}

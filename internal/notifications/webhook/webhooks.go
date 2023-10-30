@@ -48,9 +48,18 @@ func (wd *Dispatcher) Create(webhook schema.Webhook) notifications.Notification 
 	if webhook.Method == "" {
 		webhook.Method = defaultMethod
 	}
+	if !webhook.Message.Valid {
+		if webhook.Headers == nil {
+			webhook.Headers = make(map[string]string)
+		}
+		if _, ok := webhook.Headers["Content-Type"]; !ok {
+			webhook.Headers["Content-Type"] = "application/json"
+		}
+		webhook.Message = schema.MustTemplate[schema.NotifyContext]("{{.Result | toJson}}")
+	}
 
-	return notifications.NotificationFunc(func(ctx context.Context, event notifications.Event) error {
-		payload, err := notifications.RenderPayload(webhook.Message, event)
+	return notifications.NotificationFunc(func(ctx context.Context, event schema.NotifyContext) error {
+		payload, err := webhook.Message.Bytes(&event)
 		if err != nil {
 			return fmt.Errorf("render webhook: %w", err)
 		}

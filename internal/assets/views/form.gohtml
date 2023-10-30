@@ -1,16 +1,13 @@
 {{- define  "renderField" -}}
-    {{- $lastValue := $.root.LastValue $.field.Name -}}
-    {{- $defaultValue := or $lastValue  ($.field.Default | $.root.Render) -}}
+    {{- $defaultValue := (index $.defaults $.field.Name) -}}
     {{- if .field.Options}}
         {{- if .field.Multiple }}
-            {{- $defaultValues := $.root.LastValues $.field.Name -}}
-
             {{- range $opt := .field.Options}}
                 <label class="checkbox is-block">
                     <input class="checkbox" type="checkbox"
                            name="{{$.field.Name}}"
                            value="{{or $opt.Value $opt.Label}}"
-                            {{- if $defaultValues.Has (or $opt.Value $opt.Label)}} checked{{- end}}
+                            {{- if $defaultValue.Has (or $opt.Value $opt.Label)}} checked{{- end}}
                             {{- if $.field.Disabled}} disabled{{- end}}
                     />
                     {{or $opt.Label $opt.Value}}
@@ -67,28 +64,17 @@
 
     {{end}}
 {{- end -}}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{or .Form.Title .Form.Name .Form.Table}}</title>
-    <link rel="stylesheet" href="../static/css/bulma.min.css">
-</head>
-<body>
 
-<div class="container">
+{{define "main"}}
     <section class="section">
-        <h1 class="title"> {{or .Form.Title .Form.Name .Form.Table}}</h1>
-        <p>{{($.Render .Form.Description) | markdown}}</p>
+        <p>{{($.State.Description) | markdown}}</p>
     </section>
     <br/>
-    <form method="post" class="box">
-        {{- if .Form.HasCodeAccess}}
-            <input type="hidden" name="__access_code" value="{{.Code}}"/>
-        {{- end}}
-        <input type="hidden" name="_xsrf" value="{{.XSRF}}"/>
-        {{- range $field := .Form.Fields}}
+
+    <form method="post">
+        {{$.EmbedXSRF}}
+        {{$.EmbedSession}}
+        {{- range $field := $.State.Form.Fields}}
             {{- if not $field.Hidden}}
                 <div class="field">
                     <label class="label">
@@ -103,18 +89,19 @@
                         {{- end}}
                     </label>
                     <div class="control">
-                        {{template "renderField" (dict "field" $field "root" $)}}
+                        {{template "renderField" (dict "field" $field "defaults" $.State.Defaults)}}
                     </div>
                     {{- with $field.Description}}
                         <p class="help">{{.}}</p>
                     {{- end}}
-                    {{- with $.FieldError $field.Name}}
-                        <p class="help is-danger">{{.}}</p>
+                    {{- range ($.Messages $field.Name)}}
+                        <p class="help is-{{.Type}}">{{.Text}}</p>
                     {{- end}}
                 </div>
             {{- end}}
         {{- end}}
         <div class="field">
+            {{$.EmbedCaptcha}}
             <div class="control">
                 <button class="button is-success" type="submit">send</button>
             </div>
@@ -132,7 +119,4 @@
             }
         </script>
     </form>
-</div>
-</body>
-<link rel="stylesheet" href="../static/css/materialdesignicons.min.css">
-</html>
+{{end}}

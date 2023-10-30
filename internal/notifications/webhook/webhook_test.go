@@ -34,8 +34,8 @@ func TestDispatcher_Dispatch(t *testing.T) {
 			URL: server.URL,
 		})
 
-		err := notify.Dispatch(ctx, &Event{
-			result: map[string]any{"Name": t.Name()},
+		err := notify.Dispatch(ctx, schema.NotifyContext{
+			Result: map[string]any{"Name": t.Name()},
 		})
 
 		require.NoError(t, err)
@@ -58,8 +58,8 @@ func TestDispatcher_Dispatch(t *testing.T) {
 			Method: http.MethodPut,
 		})
 
-		err := notify.Dispatch(ctx, &Event{
-			result: map[string]any{"Name": t.Name()},
+		err := notify.Dispatch(ctx, schema.NotifyContext{
+			Result: map[string]any{"Name": t.Name()},
 		})
 		require.NoError(t, err)
 
@@ -83,8 +83,8 @@ func TestDispatcher_Dispatch(t *testing.T) {
 			},
 		})
 
-		err := notify.Dispatch(ctx, &Event{
-			result: map[string]any{"Name": t.Name()},
+		err := notify.Dispatch(ctx, schema.NotifyContext{
+			Result: map[string]any{"Name": t.Name()},
 		})
 		require.NoError(t, err)
 
@@ -124,22 +124,4 @@ func requireReceive(t *testing.T, ctx context.Context, requests <-chan *http.Req
 		require.NoError(t, ctx.Err())
 		panic("finished")
 	}
-}
-
-type Event struct {
-	result     map[string]any
-	error      error
-	definition schema.Form
-}
-
-func (ev *Event) Form() *schema.Form {
-	return &ev.definition
-}
-
-func (ev *Event) Error() error {
-	return ev.error
-}
-
-func (ev *Event) Result() map[string]any {
-	return ev.result
 }
