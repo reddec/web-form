@@ -49,11 +49,3 @@ func (s *Set[T]) UnmarshalYAML(value *yaml.Node) error {
 	*s = NewSet(data...)
 	return nil
 }
-
-func Keys[T comparable, V any](store map[T]V) []T {
-	var ans = make([]T, 0, len(store))
-	for k := range store {
-		ans = append(ans, k)
-	}
-	return ans
-}

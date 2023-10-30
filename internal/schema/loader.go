@@ -46,6 +46,9 @@ func FormsFromFile(fs fs.FS, file string) ([]Form, error) {
 		if forms[i].Name == "" {
 			forms[i].Name = name
 		}
+		if forms[i].Table == "" {
+			forms[i].Table = name
+		}
 	}
 
 	return forms, nil

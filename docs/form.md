@@ -8,8 +8,8 @@ explicitly set since it's inferred from file name (without extension) and must b
 
 Supported extensions: `.yaml`, `.yml`, `.json`.
 
-The only required field is `table` which defines table name for database [storage](stores.md) or directory for `files`
-mode.
+The only "required" field is `table` which defines table name for database [storage](stores.md) or directory for `files`
+mode. If `table` is not defined, `name` will be used as table.
 
 See [examples](https://github.com/reddec/web-form/tree/master/examples) for inspirations.
 
@@ -25,7 +25,6 @@ See [examples](https://github.com/reddec/web-form/tree/master/examples) for insp
 | `success`     | string                                 | **markdown + [template](template.md)** message to show in case submission was successful       |
 | `failed`      | string                                 | **markdown + [template](template.md)** message to show in case submission failed               |
 | `policy`      | string                                 | optional policy expression (OIDC only) - see details [here](./authorization.md#access-control) |
-
 
 Default message for `success`:
 

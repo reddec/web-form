@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/reddec/web-form/internal/utils"
+	"golang.org/x/exp/maps"
 
 	"github.com/jackc/pgx/v5/stdlib"
 	migrate "github.com/rubenv/sql-migrate"
@@ -53,7 +55,7 @@ type pgStore struct {
 func (s *pgStore) Store(ctx context.Context, table string, fields map[string]any) (map[string]any, error) {
 	var query strings.Builder
 
-	keys := utils.Keys(fields)
+	keys := maps.Keys(fields)
 
 	query.WriteString("INSERT INTO ")
 	utils.QuoteBuilder(&query, table, '"')
@@ -79,6 +81,7 @@ func (s *pgStore) Store(ctx context.Context, table string, fields map[string]any
 		params = append(params, fields[keys[i]])
 	}
 	query.WriteString(") RETURNING *")
+	slog.Debug(query.String())
 
 	var result = make(map[string]any)
 	rows, err := s.pool.Query(ctx, query.String(), params...)
@@ -127,7 +130,7 @@ type liteStore struct {
 func (s *liteStore) Store(ctx context.Context, table string, fields map[string]any) (map[string]any, error) {
 	var query strings.Builder
 
-	keys := utils.Keys(fields)
+	keys := maps.Keys(fields)
 
 	query.WriteString("INSERT INTO ")
 	utils.QuoteBuilder(&query, table, '"')
@@ -162,6 +165,7 @@ func (s *liteStore) Store(ctx context.Context, table string, fields map[string]a
 		params = append(params, param)
 	}
 	query.WriteString(") RETURNING *")
+	slog.Debug(query.String())
 
 	var result = make(map[string]any)
 	row := s.pool.QueryRowxContext(ctx, query.String(), params...)
