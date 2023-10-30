@@ -69,7 +69,7 @@ Cloudflare Turnstile:
 
 ## Captcha
 
-*since 0.3.0*
+*since 0.4.0*
 
 WebForms offers CAPTCHA functionality for POST requests, which serves as a mechanism for verifying the
 authenticity of incoming requests during both form submission and access code submission processes. To enable CAPTCHA,

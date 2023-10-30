@@ -29,7 +29,7 @@
         {{- else}}
             <input class="input" type="text" name="{{.field.Name}}"
                    value="{{$defaultValue}}"
-                    {{- if .field.Pattern}} pattern="{{.field.Pattern}}" {{- end}}
+                    {{- if .field.Pattern}} pattern="{{.field.Pattern | trim}}" {{- end}}
                     {{- if .field.Disabled}} disabled{{- end}}
             />
         {{- end}}
