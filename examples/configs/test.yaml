@@ -4,3 +4,23 @@ fields:
   - name: allowed
     type: boolean
     default: "false"
+
+  - name: disallowed
+    type: boolean
+    default: "true"
+
+  - name: maybe
+    type: boolean
+
+  - name: text
+    type: string
+    default: "foobar"
+
+  - name: float
+    type: float
+    default: "123.123"
+
+
+  - name: integer
+    type: integer
+    default: "321"

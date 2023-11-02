@@ -145,6 +145,20 @@ func ParseForm(definition *Form, tzLocation *time.Location, viewCtx *RequestCont
 			values = utils.Uniq(viewCtx.Form[field.Name])
 		}
 
+		// corner case for checkbox - browser will not send value if field not selected.
+		// we will try using default value.
+		if field.Type == TypeBoolean && len(values) == 0 && field.Default.Valid {
+			v, err := field.Default.String(viewCtx)
+			if err != nil {
+				fieldErrors = append(fieldErrors, FieldError{
+					Name:  field.Name,
+					Error: err,
+				})
+				continue
+			}
+			values = append(values, v)
+		}
+
 		if len(field.Options) > 0 {
 			// we need to check that all values belong to allowed values before parsing
 			// since we are using plain text comparison.
