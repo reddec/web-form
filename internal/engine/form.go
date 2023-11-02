@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -135,6 +136,12 @@ func (fr *formRequest) Serve(request *web.Request) {
 
 func (fr *formRequest) submitForm(request *web.Request) {
 	tz := request.Session()[tzField]
+
+	// workaround for some browsers sending value in url-encoded format
+	if v, err := url.QueryUnescape(tz); err == nil {
+		tz = v
+	}
+
 	tzLocation, err := time.LoadLocation(tz)
 	if err != nil {
 		request.Logger().Warn("failed load client's timezone location - local will be used", "tz", tz, "error", err)
