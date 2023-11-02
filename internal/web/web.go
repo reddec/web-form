@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/reddec/web-form/internal/schema"
 	"github.com/reddec/web-form/internal/utils"
@@ -244,9 +245,10 @@ func XSRF(writer http.ResponseWriter) string {
 	http.SetCookie(writer, &http.Cookie{
 		Name:     CookieXSRF,
 		Value:    t,
-		Path:     ".",
+		Path:     "/", // we have to set cookie on root due to iOS limitations
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
+		Expires:  time.Now().Add(time.Hour),
 	})
 	return t
 }
