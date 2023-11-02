@@ -1,0 +1,6 @@
+---
+table: test
+fields:
+  - name: allowed
+    type: boolean
+    default: "false"

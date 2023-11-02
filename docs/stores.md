@@ -4,7 +4,7 @@ MySQL not supported due to: no `RETURNING` clause, different escape approaches a
 
 Storage can be picked by
 
-    --storage=[database|files]      Storage type (default: database) [$STORAGE]
+    --storage=[database|files|dump]      Storage type (default: database) [$STORAGE]
 
 ## Database
 
@@ -77,3 +77,9 @@ Requires:
 STORAGE=files
 FILES_PATH=results
 ```
+
+## Dump
+
+> since 0.4.1
+
+Dumps record to STDOUT. Used for debugging or database-less forms.

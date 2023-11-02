@@ -49,7 +49,7 @@ const (
 
 type Config struct {
 	Configs        string `long:"configs" env:"CONFIGS" description:"File or directory with YAML configurations" default:"configs"`
-	Storage        string `long:"storage" env:"STORAGE" description:"Storage type" default:"database" choice:"database" choice:"files"`
+	Storage        string `long:"storage" env:"STORAGE" description:"Storage type" default:"database" choice:"database" choice:"files" choice:"dump"`
 	DisableListing bool   `long:"disable-listing" env:"DISABLE_LISTING" description:"Disable listing in UI"`
 	DB             struct {
 		Dialect    string `long:"dialect" env:"DIALECT" description:"SQL dialect" default:"sqlite3" choice:"postgres" choice:"sqlite3"`
@@ -269,6 +269,8 @@ func (cfg *Config) createStorage(ctx context.Context) (storage.ClosableStorage, 
 		}
 		slog.Info("migration skipped")
 		return db, nil
+	case "dump":
+		return storage.NopCloser(&storage.Dump{}), nil
 	default:
 		return nil, fmt.Errorf("unknown storage type %q", cfg.Storage)
 	}
